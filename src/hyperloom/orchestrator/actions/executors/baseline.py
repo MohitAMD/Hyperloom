@@ -33,6 +33,7 @@ from hyperloom.common.env import is_truthy
 from hyperloom.common.env_safety import redact_secret_values, scrub_benchmark_process_env
 from hyperloom.inference_optimizer.session.session_paths import runs_dir
 from ...loop.sub_agent_runner import RunnerContext
+from ...phases import machine_state as _phase_state
 from . import _server_lifecycle as _lifecycle
 from ._file_lock import best_effort_file_lock
 from ._aiter_jit import (
@@ -2207,6 +2208,28 @@ class BaselineExecutor:
             warmup_tput = warmup_result.get("output_throughput")
             warmup_runtime = warmup_result.get("subprocess_runtime_sec")
 
+            if not defer_accuracy_until_after_measure:
+                affordable, budget_evidence = self._measure_round_affordable(
+                    warmup_runtime_sec=warmup_runtime,
+                    ctx_extra=extra,
+                )
+                if not affordable:
+                    log.warning(
+                        "baseline_executor: skipping the measured round — the warmup "
+                        "took %.0fs and only %.0fs of preparation budget is left "
+                        "(bound=%s). Keeping the warmup as the baseline; it is the "
+                        "cold anchor a single-round baseline would have produced.",
+                        float(warmup_runtime or 0.0),
+                        budget_evidence.get("affordable_sec", 0.0),
+                        budget_evidence.get("bound", ""),
+                    )
+                    warmup_result.setdefault("nonfatal_warnings", [])
+                    warmup_result["nonfatal_warnings"].append(
+                        "baseline_measure_round_dropped_low_budget",
+                    )
+                    warmup_result["measure_round_dropped"] = budget_evidence
+                    return warmup_result
+
             # Round 2 (measured): re-attach to the hot server (client only).
             # Warm re-attach is intentional — all comparison points (baseline,
             # explore decision, stack_rebench, and their grading anchor) are
@@ -2349,6 +2372,46 @@ class BaselineExecutor:
                 _revert_patches(patch_target, _pre_patch_sha)
             if bench_lease is not None:
                 bench_lease.close()
+
+    def _measure_round_affordable(
+        self,
+        *,
+        warmup_runtime_sec: Any,
+        ctx_extra: dict[str, Any] | None = None,
+    ) -> tuple[bool, dict[str, Any]]:
+        """Whether PRELUDE's remaining budget still covers the measured round.
+
+        The double-run exists to keep the baseline off cold-start numbers, and
+        on a normal model it costs minutes. On a large one it does not: two
+        field sessions spent 51 and 125 minutes on the pair, and in both the
+        cold and hot figures landed within 1% of each other — a correction the
+        session then had no time left to use. Dropping the second round when it
+        no longer fits leaves the single-round baseline the codebase already
+        supports and treats as valid, rather than a new half-measured state.
+
+        The warmup's own runtime is the estimate: the measured round re-attaches
+        to the hot server, so it is an upper bound rather than a guess. Only
+        PRELUDE is guarded — a re-baseline in a later phase answers to that
+        phase's budget.
+
+        Args:
+            warmup_runtime_sec: Wall-clock the warmup round took.
+            ctx_extra: The runner context extras carrying ``shared_state``.
+
+        Returns:
+            tuple[bool, dict[str, Any]]: ``(affordable, evidence)``.
+        """
+        state = (ctx_extra or {}).get("shared_state") or self.shared_state
+        if state is None:
+            return True, {"reason": "no_session_state"}
+        phase = str(getattr(state, "phase", "") or "").strip().upper()
+        if phase != _phase_state.PHASE_PRELUDE:
+            return True, {"reason": "not_prelude", "phase": phase}
+        try:
+            cost = float(warmup_runtime_sec or 0.0)
+        except (TypeError, ValueError):
+            cost = 0.0
+        return _phase_state.prelude_can_afford(state, expected_cost_sec=cost)
 
     def _double_run_enabled(
         self,
