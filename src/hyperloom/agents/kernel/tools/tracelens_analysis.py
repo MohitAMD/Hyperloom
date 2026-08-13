@@ -14,6 +14,7 @@ import asyncio
 import csv
 import functools
 import gzip
+import zlib
 import json
 import os
 import re
@@ -1234,11 +1235,83 @@ def open_json(path: Path) -> dict[str, Any]:
         return json.load(fh)
 
 
+# GPU-kernel sentinels for the streaming pre-flight. kineto/ROCm chrome traces
+# tag device kernels with ``"cat": "kernel"`` (roctracer sometimes emits the
+# compact, space-free form). Both variants mean the same thing.
+_KERNEL_CAT_SENTINELS = (b'"cat": "kernel"', b'"cat":"kernel"')
+
+
+def _stream_count_sentinels(
+    trace_file: Path,
+    sentinels: tuple[bytes, ...],
+    max_events: int,
+) -> int:
+    """Count byte-sentinel occurrences in a (optionally gzipped) file.
+
+    Streams the file in bounded chunks so a multi-GB trace never has to be
+    decompressed or parsed into memory at once. Handles sentinels that straddle
+    a chunk boundary via a carry window and never double-counts a match.
+
+    Args:
+        trace_file: Path to the trace (JSON or ``.gz``).
+        sentinels: Byte patterns to count (mutually exclusive at any offset).
+        max_events: Early-exit cap on the running total.
+
+    Returns:
+        The number of sentinel occurrences (capped at ``max_events``).
+    """
+    opener = gzip.open if trace_file.suffix == ".gz" else open
+    overlap = max(len(s) for s in sentinels) - 1
+
+    def _count_before(data: bytes, limit: int) -> int:
+        found = 0
+        for pat in sentinels:
+            start = 0
+            while True:
+                idx = data.find(pat, start)
+                if idx == -1 or idx >= limit:
+                    break
+                found += 1
+                start = idx + len(pat)
+        return found
+
+    total = 0
+    carry = b""
+    with opener(trace_file, "rb") as fh:  # type: ignore[call-overload]
+        while True:
+            try:
+                chunk = fh.read(8 << 20)  # 8 MiB
+            except (EOFError, OSError, gzip.BadGzipFile, zlib.error):
+                # A truncated/interrupted trace export (e.g. the profile server
+                # was torn down mid-serialization) leaves the gzip stream
+                # missing its end-of-stream marker. The prefix is still a valid,
+                # kernel-bearing trace, so return the partial count instead of
+                # discarding it — a truncated GPU trace is NOT a CPU-only trace.
+                total += _count_before(carry, len(carry))
+                break
+            if not chunk:
+                # Flush the carry window (final region, no deferral).
+                total += _count_before(carry, len(carry))
+                break
+            data = carry + chunk
+            limit = max(0, len(data) - overlap)
+            total += _count_before(data, limit)
+            if total >= max_events:
+                return max_events
+            carry = data[limit:]
+    return total
+
+
 def count_gpu_kernel_events(trace_file: Path, max_events: int = 1_000_000) -> int:
     """Count GPU kernel events in a torch_profiler trace.
 
-    Used as a pre-flight check for CPU-only traces. Counts only real GPU
-    kernels via :func:`is_kernel_event`, not host-side wrappers.
+    Used as a pre-flight check for CPU-only traces. Streams the (possibly
+    multi-GB, gzipped) trace and counts device-kernel sentinels rather than
+    loading the whole JSON into memory: a full ``json.load`` of a large TP=8
+    ``with_stack``/``record_shapes`` capture (15+ GB / 55M+ events / ~70 GB RSS
+    per rank) can raise ``MemoryError`` under container memory pressure, which
+    the old ``except: return 0`` misreported as a *GPU-blind / CPU-only* trace
+    and aborted an otherwise-healthy roofline.
 
     Args:
         trace_file: Path to the torch_profiler trace (JSON or ``.gz``).
@@ -1248,19 +1321,9 @@ def count_gpu_kernel_events(trace_file: Path, max_events: int = 1_000_000) -> in
         The GPU kernel event count, or 0 when the trace is unreadable.
     """
     try:
-        payload = open_json(trace_file)
+        return _stream_count_sentinels(trace_file, _KERNEL_CAT_SENTINELS, max_events)
     except Exception:
         return 0
-    events = payload.get("traceEvents") if isinstance(payload, dict) else None
-    if not isinstance(events, list):
-        return 0
-    count = 0
-    for ev in events:
-        if isinstance(ev, dict) and is_kernel_event(ev):
-            count += 1
-            if count >= max_events:
-                break
-    return count
 
 
 def _trace_input_sort_key(path: Path) -> tuple[int, str]:

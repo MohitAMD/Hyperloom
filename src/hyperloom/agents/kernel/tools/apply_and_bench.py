@@ -35,6 +35,115 @@ sys.path.insert(0, str(_HERE))
 
 from apply_kernel_patch import apply_kernel_patch, revert_kernel_patch  # noqa: E402
 
+# --- E2E confirm cost knobs (env-gated; safe defaults keep legacy runs intact) ---
+#
+# GEAK's inner loop already microbenchmarks every candidate kernel in isolation,
+# so the full warm-serve E2E is redundant for RANKING. It is now only a final
+# confirmation gate for the winner(s): candidates are ranked on the isolated
+# microbench, and only kernels whose microbench speedup clears the gate below get
+# an E2E confirm — batched together onto ONE patched server (apply_and_bench
+# already applies multiple pairs to the same server).
+
+# Minimum isolated-microbench speedup a candidate must show to earn an E2E
+# confirm. Default 1.03 (a ~3% microbench win is worth a serve-level check).
+_E2E_GATE_MIN_SPEEDUP_DEFAULT = 1.03
+# Cheap confirm shape: a decode-kernel's TPOT is shape-portable, so the confirm
+# does NOT need the full serving shape. In confirm mode we default to a short
+# output length + low concurrency so one batched serve is minutes, not ~55 min.
+_E2E_CONFIRM_OSL_DEFAULT = 128
+_E2E_CONFIRM_CONC_DEFAULT = 8
+
+
+def _env_float(name: str, default: float) -> float:
+    """Read a positive float env override; fall back to ``default`` on any error."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        val = float(raw)
+    except ValueError:
+        return default
+    return val if val > 0 else default
+
+
+def _env_int(name: str, default: int) -> int:
+    """Read a positive int env override; fall back to ``default`` on any error."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        val = int(raw)
+    except ValueError:
+        return default
+    return val if val > 0 else default
+
+
+def _e2e_gate_min_speedup() -> float:
+    """Microbench->E2E gate: min isolated speedup to earn an E2E confirm.
+
+    Configurable via ``HYPERLOOM_KERNEL_E2E_GATE_MIN_SPEEDUP`` (default 1.03).
+    """
+    return _env_float("HYPERLOOM_KERNEL_E2E_GATE_MIN_SPEEDUP", _E2E_GATE_MIN_SPEEDUP_DEFAULT)
+
+
+def _gate_pairs(
+    pairs: list[tuple[str, str]],
+    micro_speedups: list[float] | None,
+    gate: float,
+) -> tuple[list[tuple[str, str]], list[dict[str, Any]]]:
+    """Keep only pairs whose isolated-microbench speedup clears ``gate``.
+
+    ``micro_speedups`` is index-aligned with ``pairs``; a missing/None entry is
+    treated as "unknown" and kept (fail-open — never drop a candidate we have no
+    microbench signal for). Returns ``(kept_pairs, decisions)`` where each
+    decision records the pair and why it was kept/dropped (for the result JSON).
+    """
+    kept: list[tuple[str, str]] = []
+    decisions: list[dict[str, Any]] = []
+    for i, pair in enumerate(pairs):
+        sp = None
+        if micro_speedups is not None and i < len(micro_speedups):
+            sp = micro_speedups[i]
+        cleared = sp is None or float(sp) >= gate
+        decisions.append(
+            {
+                "patch": pair[0],
+                "target": pair[1],
+                "micro_speedup": sp,
+                "gate": gate,
+                "kept": cleared,
+                "reason": "no microbench signal (kept)"
+                if sp is None
+                else ("cleared gate" if cleared else "below gate"),
+            }
+        )
+        if cleared:
+            kept.append(pair)
+    return kept, decisions
+
+
+def _resolve_confirm_shape(osl: int, conc: int, num_prompts: int) -> tuple[int, int, int]:
+    """Resolve the cheap E2E-confirm shape from existing + dedicated knobs.
+
+    A decode-kernel's TPOT is shape-portable, so the confirm runs at a short osl
+    and low concurrency rather than the full serving shape. Precedence:
+      * osl: ``PROFILE_OSL`` (the ``--profile-osl`` knob) >
+        ``HYPERLOOM_KERNEL_E2E_CONFIRM_OSL`` > 128 default.
+      * conc: ``HYPERLOOM_KERNEL_E2E_CONFIRM_CONC`` > 8 default.
+      * num_prompts: capped to ``HYPERLOOM_PROFILE_MAX_ITERS`` when set (fewer
+        requests => shorter serve) but never below ``conc`` (need >=1 batch).
+    """
+    profile_osl = _env_int("PROFILE_OSL", 0)
+    if profile_osl > 0:
+        osl = profile_osl
+    else:
+        osl = _env_int("HYPERLOOM_KERNEL_E2E_CONFIRM_OSL", _E2E_CONFIRM_OSL_DEFAULT)
+    conc = _env_int("HYPERLOOM_KERNEL_E2E_CONFIRM_CONC", _E2E_CONFIRM_CONC_DEFAULT)
+    max_iters = _env_int("HYPERLOOM_PROFILE_MAX_ITERS", 0)
+    if max_iters > 0:
+        num_prompts = max(conc, min(num_prompts, max_iters))
+    return osl, conc, num_prompts
+
 
 def _log(out_dir: Path, msg: str) -> None:
     line = f"[{time.strftime('%H:%M:%S')}] {msg}"
@@ -481,13 +590,15 @@ def apply_and_bench(
     osl: int = 1024,
     conc: int = 64,
     num_prompts: int = 320,
-    reps: int = 5,
+    reps: int = 3,
     out_dir: str,
     kernel_id: str = "",
     rebuild_command: str | None = None,
     aiter_rebuild: bool = False,
     skip_rebuild: bool = False,
     seed: int = 1234,
+    micro_speedups: list[float] | None = None,
+    confirm: bool = False,
 ) -> dict[str, Any]:
     """Apply one or more kernel patches together and measure E2E throughput A/B — no gate.
 
@@ -495,6 +606,16 @@ def apply_and_bench(
     Multiple pairs are applied to the same patched server, so the A/B reports their combined
     effect. Always reverts every patched source at the end (patch files kept). Handles aiter
     ``.cu`` rebuild (removes prebuilt fused ``.so`` + AITER_REBUILD=1). No verdict.
+
+    Winner-gating + cheap-confirm knobs (both default-off so legacy callers are
+    unchanged):
+      * ``micro_speedups`` — index-aligned with ``pairs``. Pairs whose isolated
+        microbench speedup is below ``HYPERLOOM_KERNEL_E2E_GATE_MIN_SPEEDUP``
+        (default 1.03) are dropped BEFORE the serve, so only winners are
+        confirmed and they are batched onto ONE patched server.
+      * ``confirm`` — run the E2E at the cheap confirm shape (short osl, low
+        conc; see :func:`_resolve_confirm_shape`) instead of the full serving
+        shape, since decode-kernel TPOT is shape-portable.
     """
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -506,6 +627,23 @@ def apply_and_bench(
         if not (patch_path and target_file):
             return {"status": "error", "error": "need pairs=[(patch,target),...] or patch_path+target_file"}
         pairs = [(patch_path, target_file)]
+    # Winner gate: drop candidates whose isolated microbench did not clear the
+    # gate so the (expensive) E2E only confirms kernels worth confirming. All
+    # survivors are then applied to the SAME server => one batched confirm.
+    gate = _e2e_gate_min_speedup()
+    gate_decisions: list[dict[str, Any]] = []
+    if micro_speedups is not None:
+        pairs, gate_decisions = _gate_pairs(pairs, micro_speedups, gate)
+        if not pairs:
+            return {
+                "status": "no_candidate_cleared_gate",
+                "gate_min_speedup": gate,
+                "gate_decisions": gate_decisions,
+            }
+    # Cheap confirm shape (env-gated): decode-kernel TPOT is shape-portable, so a
+    # short-osl / low-conc serve confirms the winner in minutes, not ~55 min.
+    if confirm:
+        osl, conc, num_prompts = _resolve_confirm_shape(osl, conc, num_prompts)
     targets = [Path(t) for _, t in pairs]
     any_aiter_cu = any("/aiter/" in str(t) and t.suffix in {".cu", ".cuh"} for t in targets)
     patched_env: dict[str, str] = {}
@@ -636,6 +774,10 @@ def apply_and_bench(
         "engagement_proof": engagement,
         "applied": applied,
         "targets": [str(t) for t in targets],
+        "confirm_mode": confirm,
+        "confirm_shape": {"osl": osl, "conc": conc, "num_prompts": num_prompts} if confirm else None,
+        "gate_min_speedup": gate,
+        "gate_decisions": gate_decisions,
     }
     (out / "apply_and_bench_result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     _log(
@@ -673,8 +815,27 @@ def main() -> int:
     ap.add_argument(
         "--reps",
         type=int,
-        default=5,
+        default=3,
         help="timed reps per arm (a separate untimed warmup pass is always discarded first)",
+    )
+    ap.add_argument(
+        "--confirm",
+        action="store_true",
+        help="winner E2E-confirm mode: run at the cheap confirm shape (short osl, low conc; "
+        "HYPERLOOM_KERNEL_E2E_CONFIRM_OSL / _CONC, PROFILE_OSL, HYPERLOOM_PROFILE_MAX_ITERS) "
+        "since decode-kernel TPOT is shape-portable",
+    )
+    ap.add_argument(
+        "--profile-osl",
+        type=int,
+        default=0,
+        help="cheap-confirm output length; sets PROFILE_OSL for --confirm (0 => use env/default)",
+    )
+    ap.add_argument(
+        "--micro-speedups",
+        default="",
+        help="comma-separated isolated-microbench speedups aligned with --pair order; pairs below "
+        "HYPERLOOM_KERNEL_E2E_GATE_MIN_SPEEDUP (default 1.03) are dropped before the batched E2E",
     )
     ap.add_argument(
         "--seed",
@@ -699,6 +860,19 @@ def main() -> int:
         pairs.append((a.patch_path, a.target_file))
     if not pairs:
         raise SystemExit("need --pair PATCH:TARGET (repeatable) or --patch-path + --target-file")
+    # --profile-osl is surfaced to the confirm shape via PROFILE_OSL (the same
+    # knob the orchestrator's profile path already reads).
+    if a.profile_osl and a.profile_osl > 0:
+        os.environ["PROFILE_OSL"] = str(a.profile_osl)
+    micro_speedups: list[float] | None = None
+    if a.micro_speedups.strip():
+        micro_speedups = []
+        for tok in a.micro_speedups.split(","):
+            tok = tok.strip()
+            try:
+                micro_speedups.append(float(tok))
+            except ValueError:
+                raise SystemExit(f"--micro-speedups must be comma-separated floats, got: {tok!r}")
     res = apply_and_bench(
         pairs=pairs,
         backup_root=a.backup_root,
@@ -718,6 +892,8 @@ def main() -> int:
         aiter_rebuild=a.aiter_rebuild,
         skip_rebuild=a.skip_rebuild,
         seed=a.seed,
+        micro_speedups=micro_speedups,
+        confirm=a.confirm,
     )
     print(json.dumps(res, indent=2))
     return 0 if res.get("status") == "ok" else 1

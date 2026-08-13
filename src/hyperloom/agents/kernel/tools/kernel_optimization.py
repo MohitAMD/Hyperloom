@@ -3073,12 +3073,42 @@ def build_verification(
     }
 
 
+# Minimum isolated-microbench speedup a KEEP must show to warrant a full
+# warm-serve E2E confirm. Candidates are RANKED and KEPT on the in-harness
+# microbench alone (no per-candidate E2E); the E2E is only a final confirmation
+# gate for the winner(s), which the orchestrator batches into ONE serve. Keep
+# this default aligned with apply_and_bench's HYPERLOOM_KERNEL_E2E_GATE_MIN_SPEEDUP.
+_E2E_CONFIRM_GATE_MIN_SPEEDUP_DEFAULT = 1.03
+
+
+def _e2e_confirm_gate_min_speedup() -> float:
+    """Min microbench speedup to earn an E2E confirm (env-configurable).
+
+    Reads ``HYPERLOOM_KERNEL_E2E_GATE_MIN_SPEEDUP`` (default 1.03); non-positive
+    or unparseable values fall back to the default.
+    """
+    raw = os.environ.get("HYPERLOOM_KERNEL_E2E_GATE_MIN_SPEEDUP", "").strip()
+    if not raw:
+        return _E2E_CONFIRM_GATE_MIN_SPEEDUP_DEFAULT
+    try:
+        val = float(raw)
+    except ValueError:
+        return _E2E_CONFIRM_GATE_MIN_SPEEDUP_DEFAULT
+    return val if val > 0 else _E2E_CONFIRM_GATE_MIN_SPEEDUP_DEFAULT
+
+
 def make_proposal(verification: dict[str, Any]) -> dict[str, Any]:
     """Turn a verification result into a KEEP/REVERT/PARTIAL/REVIEW decision.
 
     Applies the policy gates (compile, correctness, artifact validity,
     measured speedup vs the KEEP threshold, E2E/accuracy signals) to choose
     a disposition and the reasons behind it.
+
+    KEEP proposals additionally carry ``e2e_confirm`` (bool) + ``e2e_confirm_gate``
+    (float): the ranking/KEEP decision is made on the isolated microbench, and
+    ``e2e_confirm`` tells the orchestrator whether this winner cleared the gate
+    and should be included in the batched warm-serve E2E confirmation (instead
+    of paying a full E2E per candidate).
 
     Args:
         verification (dict[str, Any]): The dict returned by
@@ -3121,12 +3151,24 @@ def make_proposal(verification: dict[str, Any]) -> dict[str, Any]:
 
     if reasons:
         return {"decision": "NEEDS_REVIEW", "reasons": reasons}
+    # KEEP: annotate whether this winner's microbench clears the E2E-confirm gate
+    # so the orchestrator batches only qualifying winners into ONE warm-serve
+    # confirm rather than paying a full E2E per candidate.
+    e2e_gate = _e2e_confirm_gate_min_speedup()
+    e2e_confirm = float(verification.get("micro_speedup") or 0.0) >= e2e_gate
     if verification["e2e_gain_pct"] is None or verification["accuracy_passed"] is None:
         return {
             "decision": "KEEP",
             "reasons": ["kernel artifact ready; E2E/accuracy deferred to integrate"],
+            "e2e_confirm": e2e_confirm,
+            "e2e_confirm_gate": e2e_gate,
         }
-    return {"decision": "KEEP", "reasons": ["all required evidence passed"]}
+    return {
+        "decision": "KEEP",
+        "reasons": ["all required evidence passed"],
+        "e2e_confirm": e2e_confirm,
+        "e2e_confirm_gate": e2e_gate,
+    }
 
 
 def main() -> int:

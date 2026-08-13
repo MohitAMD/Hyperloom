@@ -809,15 +809,39 @@ def apply_runtime_benchmark_overrides(
         bench["runner_type"] = str(gpu_type)
         # Force-pin the generic ``{framework}_{gpu_type}.sh`` so Magpie's
         # resolver doesn't fall through to InferenceX native scripts that
-        # ignore ``EXTRA_*_ARGS``.
+        # ignore ``EXTRA_*_ARGS``. BUT preserve an operator-baked CUSTOM script
+        # (e.g. a wrap-harness adapter such as hl_benchmark_disagg.sh): only
+        # auto-pin when no script is set or the existing one is itself a generic
+        # ``{framework}_<gpu>.sh`` placeholder, otherwise per-variant configs
+        # would silently bypass the adapter.
         framework = str(bench.get("framework") or "").lower()
-        if framework:
-            bench["benchmark_script"] = f"{framework}_{gpu_type}.sh"
-        else:
-            bench.pop("benchmark_script", None)
+        _existing_script = str(bench.get("benchmark_script") or "").strip()
+        _is_generic_script = bool(framework) and bool(
+            re.fullmatch(rf"{re.escape(framework)}_[A-Za-z0-9]+\.sh", _existing_script)
+        )
+        if not _existing_script or _is_generic_script:
+            if framework:
+                bench["benchmark_script"] = f"{framework}_{gpu_type}.sh"
+            else:
+                bench.pop("benchmark_script", None)
 
     if benchmark_script:
-        bench["benchmark_script"] = str(benchmark_script)
+        # Guard: never let a GENERIC ``{framework}_{gpu}.sh`` override clobber an
+        # operator-baked CUSTOM wrap-adapter (e.g. hl_benchmark_disagg.sh) that
+        # secretly drives a multi-node harness — doing so silently bypasses the
+        # adapter and fast-fails the disagg wrap as a single-node ``vllm serve``.
+        _ov = str(benchmark_script)
+        _fw_ov = str(bench.get("framework") or "").lower()
+        _cur = str(bench.get("benchmark_script") or "").strip()
+        _ov_generic = bool(_fw_ov) and bool(
+            re.fullmatch(rf"{re.escape(_fw_ov)}_[A-Za-z0-9]+\.sh", _ov)
+        )
+        _cur_custom = bool(_cur) and not (
+            bool(_fw_ov)
+            and re.fullmatch(rf"{re.escape(_fw_ov)}_[A-Za-z0-9]+\.sh", _cur)
+        )
+        if not (_ov_generic and _cur_custom):
+            bench["benchmark_script"] = _ov
 
     envs = bench.setdefault("envs", {})
     for env_key in ("ISL", "OSL", "MAX_MODEL_LEN", "TP", "CONC"):

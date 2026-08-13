@@ -413,12 +413,37 @@ def materialize_config_with_envs(
     if gpu_type:
         bench["runner_type"] = str(gpu_type)
         framework = str(bench.get("framework") or "").lower()
-        if framework:
-            bench["benchmark_script"] = f"{framework}_{gpu_type}.sh"
-        else:
-            bench.pop("benchmark_script", None)
+        # Preserve an operator-baked CUSTOM benchmark_script (e.g. a wrap-harness
+        # adapter such as hl_benchmark_disagg.sh that secretly drives a multi-node
+        # harness). Auto-pinning the generic {framework}_{gpu}.sh here would
+        # silently bypass it. Only auto-pin when no script is set or the existing
+        # one is itself a generic {framework}_<gpu>.sh placeholder.
+        _existing_script = str(bench.get("benchmark_script") or "").strip()
+        _is_generic_script = bool(framework) and bool(
+            re.fullmatch(rf"{re.escape(framework)}_[A-Za-z0-9]+\.sh", _existing_script)
+        )
+        if not _existing_script or _is_generic_script:
+            if framework:
+                bench["benchmark_script"] = f"{framework}_{gpu_type}.sh"
+            else:
+                bench.pop("benchmark_script", None)
     if benchmark_script:
-        bench["benchmark_script"] = str(benchmark_script)
+        # Guard: never let a GENERIC ``{framework}_{gpu}.sh`` override clobber an
+        # operator-baked CUSTOM wrap-adapter (e.g. hl_benchmark_disagg.sh) that
+        # secretly drives a multi-node harness — doing so silently bypasses the
+        # adapter and fast-fails the disagg wrap as a single-node ``vllm serve``.
+        _ov = str(benchmark_script)
+        _fw_ov = str(bench.get("framework") or "").lower()
+        _cur = str(bench.get("benchmark_script") or "").strip()
+        _ov_generic = bool(_fw_ov) and bool(
+            re.fullmatch(rf"{re.escape(_fw_ov)}_[A-Za-z0-9]+\.sh", _ov)
+        )
+        _cur_custom = bool(_cur) and not (
+            bool(_fw_ov)
+            and re.fullmatch(rf"{re.escape(_fw_ov)}_[A-Za-z0-9]+\.sh", _cur)
+        )
+        if not (_ov_generic and _cur_custom):
+            bench["benchmark_script"] = _ov
     # Fail fast on framework/script mismatch (e.g. vllm image + sglang script).
     # Only trip when the script carries a DIFFERENT known framework's prefix, so
     # custom/non-prefixed scripts are not falsely rejected.

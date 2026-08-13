@@ -1254,11 +1254,11 @@ ensure_forge_claude_cli() {
   # ~/.claude authenticates the Claude Code CLI for Anthropic-compatible flows.
   local _claude_key="${_ANTHROPIC_KEY_VAL:-${_DEEPSEEK_KEY_VAL:-}}"
   if [ -n "$_claude_key" ]; then
-    mkdir -p /root/.claude
+    mkdir -p "${HOME}/.claude"
     local _anthropic_url="${_ANTHROPIC_BASE_URL_VAL:-${_DEEPSEEK_BASE_URL_VAL:-${_DEFAULT_DEEPSEEK_ANTHROPIC_BASE_URL:-}}}"
     _anthropic_url="${_anthropic_url%/}"
     _anthropic_url="${_anthropic_url%/v1}"
-    cat > /root/.claude/config.json <<EOF
+    cat > "${HOME}/.claude/config.json" <<EOF
 {
   "theme": "dark",
   "hasCompletedOnboarding": true,
@@ -1266,7 +1266,7 @@ ensure_forge_claude_cli() {
   "customApiUrl": "${_anthropic_url}"
 }
 EOF
-    chmod 600 /root/.claude/config.json
+    chmod 600 "${HOME}/.claude/config.json"
   else
     warn "Anthropic/DeepSeek key not set; ~/.claude/config.json not written"
   fi

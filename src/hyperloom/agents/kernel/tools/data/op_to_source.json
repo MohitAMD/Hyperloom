@@ -1,4 +1,22 @@
 {
+  "vllm::rocm_aiter_sparse_attn_indexer": {
+    "kind": "single",
+    "python_launcher_path": [
+      "vllm/v1/attention/ops/rocm_aiter_mla_sparse.py(646): rocm_aiter_sparse_attn_indexer",
+      "vllm/v1/attention/ops/triton_fp8_mqa_logits.py(159): fp8_mqa_logits_gfx942"
+    ],
+    "patchable": true,
+    "vllm": {
+      "_fp8_mqa_logits_kernel": {
+        "kernel_source_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/attention/ops/triton_fp8_mqa_logits.py",
+        "kernel_source_line": "49",
+        "kernel_kind": "triton",
+        "patchable": true,
+        "note": "DSA (Dynamic Sparse Attention) sparse-MLA indexer prefill logits kernel for GLM-5.1-FP8 (deepseek-style). @triton.jit _fp8_mqa_logits_kernel launched grid=(seq_len,) by fp8_mqa_logits_gfx942 (line 234); this is the gfx942/MI300X vendored path (ROCm/aiter#3257 tile fix) taken when VLLM_ROCM_USE_AITER_MLA=1. Cost scales with KV length (long-context/prefill), NOT OSL/concurrency, so it profiles at a cheap serving shape. Shape for DSv4/GLM-5.1: NUM_HEADS=64, HEAD_SIZE=128, fp8 dtype torch.float8_e4m3fn. Reached via rocm_aiter_sparse_attn_indexer -> rocm_fp8_mqa_logits -> fp8_mqa_logits_gfx942. The op also fires torch.ops._C.top_k_per_row_prefill for KV selection, but the mqa-logits score computation is the dominant long-context cost."
+      }
+    },
+    "sglang": {}
+  },
   "_C::silu_and_mul": {
     "kind": "single",
     "python_launcher_path": [
@@ -479,6 +497,7 @@
       "aiter/fused_moe.py(367): fused_moestage"
     ],
     "patchable": true,
+    "geak_harness_note": "GLM-5.1-FP8 MoE stage-1 expert GEMM (g1u1 = fused gate+up + SiLU*up). Production kernel is a hand-written AMD ASM kernel (kernel_kind=aiter_asm); measured ~7.1% of GPU time @ ~26% roofline efficiency (compute-bound, decode-dominated: ~1-2 tokens/expert) in the phaseC2 trace -> real headroom. GEAK Triton-authoring optimize harness (seed + pure-torch fp32 oracle) lives at optimizer_runs/kernel2_moe_g1u1/seed_op/{moe_fp8_blockscale_g1u1.py,test_harness.py,config.yaml}. Shapes: K(hidden)=6144, N(moe_intermediate)=2048, E=256, top_k=8, fp8 block=[128,128].",
     "vllm": {
       "_ZN5aiter50fmoe_bf16_blockscaleFp8_g1u1_vs_silutg_psx256E.kd": {
         "kernel_source_path": "/usr/local/lib/python3.12/dist-packages/aiter_meta/csrc/py_itfs_cu/asm_fmoe.cu",
