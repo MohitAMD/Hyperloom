@@ -19,7 +19,7 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import yaml
 
@@ -38,6 +38,7 @@ from ._subprocess_kill import (
     AGENTX_PREFLIGHT_RETURNCODE,
     DETOKENIZER_STALL_RETURNCODE,
     EVAL_PROBE_UNPATCHABLE_RETURNCODE,
+    ORCHESTRATOR_CANCELLED_RETURNCODE,
     OVERTIME_KILL_RETURNCODE,
     SERVER_DEAD_RETURNCODE,
     SESSION_TIME_EXHAUSTED_RETURNCODE,
@@ -1202,6 +1203,45 @@ _SESSION_KILL_GRACE_SEC: int = 15
 # about the variant, and the ledger must not read it as one.
 SESSION_TIME_EXHAUSTED_CLASS = "session_time_exhausted"
 
+# Labels a round the orchestrator stopped from outside -- a shutdown, or a
+# budget the dispatcher found spent. Kept apart from the class above for the
+# same reason their returncodes are: a resume faces the spent budget again and
+# does not face the shutdown.
+ORCHESTRATOR_CANCELLED_CLASS = "orchestrator_cancelled"
+
+
+class _StoppedByTheRun(NamedTuple):
+    """How a returncode that stopped the round from outside is recorded.
+
+    Neither cause is evidence about the variant, so both are recorded as
+    ``skipped`` rather than failed -- see the branch that consumes this.
+    """
+
+    error_class: str
+    interrupted: str
+    never_started: str
+    ends_the_grid: bool
+
+
+# The two causes that stop a round without saying anything about the variant.
+# The budget leaves the rest of the grid to the fit check at the top of the loop,
+# which sees a deadline in the past and skips them all under the same label; a
+# cancel has no such check, and nothing new should start under one anyway.
+_STOPPED_BY_THE_RUN: dict[int, _StoppedByTheRun] = {
+    SESSION_TIME_EXHAUSTED_RETURNCODE: _StoppedByTheRun(
+        error_class=SESSION_TIME_EXHAUSTED_CLASS,
+        interrupted="session wall-clock budget exhausted while this variant was running",
+        never_started="session wall-clock budget exhausted before this variant ran",
+        ends_the_grid=False,
+    ),
+    ORCHESTRATOR_CANCELLED_RETURNCODE: _StoppedByTheRun(
+        error_class=ORCHESTRATOR_CANCELLED_CLASS,
+        interrupted="the orchestrator cancelled this action while this variant was running",
+        never_started="the orchestrator cancelled this action before this variant ran",
+        ends_the_grid=True,
+    ),
+}
+
 
 def session_grid_bounds(shared_state: Any) -> tuple[float | None, float | None]:
     """Resolve ``(session_deadline_sec, variant_expected_sec)`` for a :func:`run_grid` call.
@@ -1452,7 +1492,12 @@ async def run_grid(
                     len(grid) - i,
                 )
                 for skipped_variant in grid[i:]:
-                    results.append(_session_deadline_skip_result(skipped_variant))
+                    results.append(
+                        _not_run_skip_result(
+                            skipped_variant,
+                            _STOPPED_BY_THE_RUN[SESSION_TIME_EXHAUSTED_RETURNCODE],
+                        )
+                    )
                 break
         slot = output_root / f"variant_{i:02d}_{_safe(variant.name)}"
         server_log = slot / "server.log"
@@ -2104,31 +2149,29 @@ async def run_grid(
                 break
             continue
 
-        # Session budget ran out mid-round and the tree was reaped. Recorded as
-        # ``skipped``, exactly like a variant the budget refused to start: in both
-        # cases nothing was measured, so there is no verdict to record about the
-        # variant. Grading it as a failure -- or worse as ``killed_overtime``,
-        # which asserts the variant is abnormally slow -- would put a conclusion
-        # the run never reached into the ledger and the KB.
-        #
-        # The remaining variants are left to the fit check at the top of the loop,
-        # which now sees a deadline in the past and skips them all under the same
-        # label rather than duplicating that decision here.
-        if rc == SESSION_TIME_EXHAUSTED_RETURNCODE:
+        # The round was stopped by the run rather than by anything about the
+        # variant, and the tree was reaped. Recorded as ``skipped``, exactly like
+        # a variant the budget refused to start: in both cases nothing was
+        # measured, so there is no verdict to record about the variant. Grading it
+        # as a failure -- or worse as ``killed_overtime``, which asserts the
+        # variant is abnormally slow -- would put a conclusion the run never
+        # reached into the ledger and the KB.
+        stopped = _STOPPED_BY_THE_RUN.get(rc)
+        if stopped is not None:
             variant_runtime_sec = round(max(0.0, time.time() - variant_started_unix), 2)
             log.warning(
-                "grid_runner: variant %d/%d name=%s reaped after %.1fs: the session "
-                "wall-clock budget ran out mid-round; recorded as skipped, not failed",
+                "grid_runner: variant %d/%d name=%s reaped after %.1fs: %s; recorded as skipped, not failed",
                 i + 1,
                 len(grid),
                 variant.name,
                 variant_runtime_sec,
+                stopped.interrupted,
             )
             _write_variant_abort_marker(
                 slot,
                 variant_name=variant.name,
-                error_class=SESSION_TIME_EXHAUSTED_CLASS,
-                error_summary="session wall-clock budget exhausted mid-round; tree reaped",
+                error_class=stopped.error_class,
+                error_summary=f"{stopped.interrupted}; tree reaped",
                 extra_args=variant.extra_server_args,
             )
             results.append(
@@ -2139,13 +2182,16 @@ async def run_grid(
                     status="skipped",
                     returncode=rc,
                     runtime_sec=variant_runtime_sec,
-                    error="session wall-clock budget exhausted while this variant was running",
-                    error_class=SESSION_TIME_EXHAUSTED_CLASS,
+                    error=stopped.interrupted,
+                    error_class=stopped.error_class,
                     server_log_path=_existing_log_path(server_log),
                     note=variant.note,
                 )
             )
             await _pulse_after_variant(i)
+            if stopped.ends_the_grid:
+                results.extend(_not_run_skip_result(rest, stopped) for rest in grid[i + 1 :])
+                break
             if not keep_going_on_failure:
                 break
             continue
@@ -2369,15 +2415,24 @@ async def run_grid(
     return results
 
 
-def _session_deadline_skip_result(variant: GridVariant) -> VariantResult:
-    """Synthetic ``skipped`` result for a variant dropped when the session budget ran out."""
+def _not_run_skip_result(variant: GridVariant, stopped: _StoppedByTheRun) -> VariantResult:
+    """Build the ``skipped`` result for a variant the run never got to.
+
+    Args:
+        variant: The variant that was dropped.
+        stopped: Why the run stopped, which is the whole content of the result:
+            nothing was measured, so there is nothing else to report.
+
+    Returns:
+        VariantResult: A synthetic ``skipped`` result carrying that cause.
+    """
     return VariantResult(
         name=variant.name,
         extra_server_args=variant.extra_server_args,
         extra_envs=dict(variant.extra_envs),
         status="skipped",
-        error="session wall-clock budget exhausted before this variant ran",
-        error_class=SESSION_TIME_EXHAUSTED_CLASS,
+        error=stopped.never_started,
+        error_class=stopped.error_class,
         note=variant.note,
     )
 
@@ -2514,6 +2569,7 @@ __all__ = [
     "DEFAULT_SGLANG_WATCHDOG_TIMEOUT_SEC",
     "GridVariant",
     "MULTI_NODE_DEFAULT_KEEP_THRESHOLD_PCT",
+    "ORCHESTRATOR_CANCELLED_CLASS",
     "SESSION_TIME_EXHAUSTED_CLASS",
     "SGLANG_WATCHDOG_TIMEOUT_ENV",
     "SINGLE_NODE_DEFAULT_KEEP_THRESHOLD_PCT",
