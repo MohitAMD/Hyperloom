@@ -1,0 +1,26 @@
+{
+  "kernel_type": "triton",
+  "kernel_file": "moe_fp8_blockscale_g1u1.py",
+  "entry_point": "moe_g1u1_fp8",
+  "target_kernels": ["_moe_g1u1_fp8_kernel", "moe_g1u1_fp8", "moe_align_block_size"],
+  "modifiable_files": ["moe_fp8_blockscale_g1u1.py"],
+  "device": {"arch": "gfx942", "name": "MI300X-class", "cus": 304, "lds_kb": 64, "l2_mb": 4, "hbm_bw_tbs": 5.3},
+  "bottleneck_guess": "overhead",
+  "measured_breakdown_ms": {
+    "case0_T16":  {"full": 10.906, "gemm_only": 2.974, "host_align": 7.917, "out_zeros": 0.016},
+    "case1_T32":  {"full": 15.054, "gemm_only": 4.856, "host_align": 10.181, "out_zeros": 0.017},
+    "case2_T64":  {"full": 18.505, "gemm_only": 6.374, "host_align": 12.114, "out_zeros": 0.017},
+    "case3_T128": {"full": 20.449, "gemm_only": 7.222, "host_align": 13.209, "out_zeros": 0.017}
+  },
+  "weight_traffic": {
+    "case0": {"blocks": 103, "bytes_gb": 2.59, "bw_floor_ms": 0.489, "gemm_eff_pct": 16.4},
+    "case2": {"blocks": 219, "bytes_gb": 5.51, "bw_floor_ms": 1.040, "gemm_eff_pct": 16.3}
+  },
+  "prototypes_measured": {
+    "vectorized_moe_align_block_size": {"case0_ms": 0.502, "case1_ms": 0.491, "bitexact_vs_original": true},
+    "best_tile_case0": "BLOCK_N=64, num_warps=4, num_stages=1 -> 2.517ms (vs 2.974 at ns=2)",
+    "best_tile_case2": "BLOCK_N=64, num_warps=4, num_stages=1 -> 5.579ms (vs 6.374 at ns=2)"
+  },
+  "kk_operator": "fused_moe_grouped_gemm",
+  "kk_language": "triton"
+}

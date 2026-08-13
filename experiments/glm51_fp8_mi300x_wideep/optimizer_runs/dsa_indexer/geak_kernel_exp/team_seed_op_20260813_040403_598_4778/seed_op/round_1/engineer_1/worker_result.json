@@ -1,0 +1,91 @@
+{
+  "engineer_id": "r1_d1",
+  "specialty": "host_runtime",
+  "task": "Repair launcher tile heuristic + kill host-side waste (r1_d1)",
+  "strategy": "Fixed _gfx942_default_tile_fits_lds LDS model (fp8 1 B/elem + 512 B measured pipeline slack instead of a 2 B/elem fp16-expansion tile) so (BLOCK_KV=128,num_stages=2) is admitted for H=64/D=128; keyed matrix_instr_nonkdim off the dot shape (16 for H<=64,D<=128) instead of seq_len; raised waves_per_eu 2->3. Kept torch.full(-inf) (host fullness test needs a 60-67us device sync, more than the 16-56us fill it saves). Diff confined to the two host-side functions.",
+  "speedup_geomean": 2.051,
+  "speedup_arithmetic": 2.053,
+  "speedup_weighted": 2.1098,
+  "per_case": [
+    {
+      "name": "0",
+      "baseline_ms": 1.0605,
+      "optimized_ms": 0.5571,
+      "speedup": 1.9036,
+      "dims": [
+        [
+          2048,
+          2048,
+          64,
+          128
+        ]
+      ],
+      "dtypes": [
+        "fp8_e4m3fn"
+      ]
+    },
+    {
+      "name": "1",
+      "baseline_ms": 3.9661,
+      "optimized_ms": 1.9274,
+      "speedup": 2.0577,
+      "dims": [
+        [
+          4096,
+          4096,
+          64,
+          128
+        ]
+      ],
+      "dtypes": [
+        "fp8_e4m3fn"
+      ]
+    },
+    {
+      "name": "2",
+      "baseline_ms": 14.7343,
+      "optimized_ms": 6.883,
+      "speedup": 2.1407,
+      "dims": [
+        [
+          8000,
+          8000,
+          64,
+          128
+        ]
+      ],
+      "dtypes": [
+        "fp8_e4m3fn"
+      ]
+    },
+    {
+      "name": "3",
+      "baseline_ms": 15.1161,
+      "optimized_ms": 7.1637,
+      "speedup": 2.1101,
+      "dims": [
+        [
+          8192,
+          8192,
+          64,
+          128
+        ]
+      ],
+      "dtypes": [
+        "fp8_e4m3fn"
+      ]
+    }
+  ],
+  "status": "success",
+  "patch_file": "best_patch.diff",
+  "strategies_tried": [
+    "P4-LAUNCH: repaired _gfx942_default_tile_fits_lds LDS model -> BLOCK_KV=128/num_stages=2 admitted (14.66->7.99ms at M=8000, the single biggest win)",
+    "P4-LAUNCH: matrix_instr_nonkdim 32->16 keyed on dot shape not seq_len (7.99->7.30ms at M=8000)",
+    "P4-LAUNCH: waves_per_eu 2->3 (7.30->6.87ms at M=8000; wins on all 4 cases)",
+    "P4-LAUNCH tested+rejected: waves_per_eu=4 (11.62ms), num_stages=3 (11.08ms), num_stages=1 (7.14ms), num_warps=2 (9.78ms), BLOCK_KV=256 (9.82ms), kpack=2 (7.82ms), kpack=1 (7.29ms, neutral), schedule_hint=attention (7.28ms, neutral)",
+    "W0-ALLOC tested+rejected: torch.empty behind a host full-window test - the cu_starts/cu_ends reduction+.item() sync costs 60-67us at every size vs a 16-56us fill, so it LOSES on all 4 shapes and breaks graph-capture safety",
+    "HOST SCRUB measured: one-shot 0x80->0x00 pass on k_fp8 costs 23-24us (launch-overhead bound, not bandwidth bound); as a standalone add-on it is a 0.9% geomean REGRESSION (2.6974->2.7251ms) because r1_d0's fnuz kernel has not landed here. Left OUT of the patch.",
+    "instruction_sched_variant=iglp1 / maxnreg=128: LLVM backend crash (Bad machine code: virtual register defs do not dominate all uses) - do not use on this Triton build"
+  ],
+  "notes": "FULL_BENCHMARK geomean 2.6974ms vs 5.5324ms baseline = 2.051x, reproducible across two runs (2.7006 / 2.6974, 0.1% apart). err_ratio=0.0000 on all 4 cases - the change is launch-config only, no numerics touched. Diff is confined to _gfx942_default_tile_fits_lds and the body of fp8_mqa_logits_gfx942; the @triton.jit kernel body is byte-identical, so this merges cleanly with r1_d0's fnuz-MFMA work. THREE FINDINGS FOR THE LEDGER. (1) The gate bug is real and the fix is principled, not a bypass: the old kv_bytes = head_size*BLOCK_KV*NUM_STAGES used NUM_STAGES in the bytes-per-element slot, i.e. it modelled a 16-bit KV tile (the fp8->fp16 software expansion path). Measured kernel.metadata.shared for (128,2,H=64,D=128) on this Triton build is 16896 B = one 128x128 fp8 tile (16384) + 512 B pipeline slack, well under the 28.8 KiB per-WG budget; num_stages=2 does NOT double LDS here because the pipeliner keeps stage 2 in registers for this single-dot loop. BLOCK_KV=256 is still correctly rejected (33280 B). (2) waves_per_eu=3 was NOT in the direction (which said keep 2) and is worth an extra 6% on top of everything else - uniformly across all four cases. waves_per_eu=4 is a cliff (11.6ms). (3) The direction's item 4 (torch.empty) is a NET LOSS as specified: I measured torch.full(-inf) at 16.4/22.3/55.7/57.6us for M=2048/4096/8000/8192, but the sync required to prove the window is full costs 60-67us flat. The only sync-free way to drop the fill is a kernel-side -inf epilogue, which is r1_d0's territory - recommend the integrator hand that to the kernel-body owner rather than the host lane. Item 3 (host K scrub) is implemented and measured but deliberately not in the patch: it is a pure 23us/call cost until the fnuz bitcast lands, and it belongs in whichever patch introduces the fnuz operands so the two never get separated. If r1_d0 lands, add it there; expect ~0.9% geomean cost against a ~1.3x+ gain."
+}

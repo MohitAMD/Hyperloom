@@ -1,0 +1,176 @@
+diff --git a/moe_fp8_blockscale_g1u1.py b/moe_fp8_blockscale_g1u1.py
+index 1e077ab..7a1baab 100644
+--- a/moe_fp8_blockscale_g1u1.py
++++ b/moe_fp8_blockscale_g1u1.py
+@@ -138,48 +138,127 @@ def _moe_g1u1_fp8_kernel(
+     tl.store(out_ptrs, out, mask=c_mask)
+ 
+ 
++_SCRATCH = {}
++
++
++def _iota(n, device):
++    """Shape-derived cached iota (int64). Read-only helper buffer, never an output."""
++    key = ("iota", n, str(device))
++    t = _SCRATCH.get(key)
++    if t is None:
++        t = torch.arange(n, device=device, dtype=torch.int64)
++        _SCRATCH[key] = t
++    return t
++
++
++def _ones64(n, device):
++    key = ("ones", n, str(device))
++    t = _SCRATCH.get(key)
++    if t is None:
++        t = torch.ones(n, device=device, dtype=torch.int64)
++        _SCRATCH[key] = t
++    return t
++
++
+ def moe_align_block_size(topk_ids: torch.Tensor, block_m: int, num_experts: int):
+-    """Pure-torch reimplementation of vLLM's moe_align_block_size.
++    """Fully vectorized, sync-free reimplementation of vLLM's moe_align_block_size.
+ 
+     topk_ids: [num_tokens, top_k] int32 expert assignments.
+     Returns sorted_token_ids (expanded row ids, pad-filled), expert_ids (per block),
+     num_tokens_post_padded. Expanded row id = token * top_k + slot, so the kernel
+     can recover the real token id via // top_k.
++
++    No `.item()`, no `.cpu()`, no python loop over experts.  The output buffers are
++    sized from the host-computable static upper bound
++        EM_max = ceil_bm(numel + min(E, numel) * (block_m - 1))
++    and `num_tokens_post_padded` stays on device; the kernel early-exits on the
++    tail blocks.
+     """
+     num_tokens, top_k = topk_ids.shape
+-    device = topk_ids.device
+-    flat_expert = topk_ids.reshape(-1)                       # [num_tokens*top_k]
+-    expanded_row = torch.arange(num_tokens * top_k, device=device, dtype=torch.int32)
+-
+-    order = torch.argsort(flat_expert, stable=True)
+-    sorted_experts = flat_expert[order]
+-    sorted_rows = expanded_row[order]
+-
+-    counts = torch.bincount(flat_expert, minlength=num_experts)  # tokens per expert
+-    padded = ((counts + block_m - 1) // block_m) * block_m
+-    num_padded = int(padded.sum().item())
+-
+     numel = num_tokens * top_k
+-    sorted_token_ids = torch.full((num_padded,), numel, device=device, dtype=torch.int32)
+-    expert_ids = torch.zeros((num_padded // block_m,), device=device, dtype=torch.int32)
+-
+-    cur = 0
+-    blk = 0
+-    csum = 0
+-    for e in range(num_experts):
+-        c = int(counts[e].item())
+-        if c == 0:
+-            continue
+-        p = int(padded[e].item())
+-        rows_e = sorted_rows[csum:csum + c]
+-        sorted_token_ids[cur:cur + c] = rows_e
+-        nblocks = p // block_m
+-        expert_ids[blk:blk + nblocks] = e
+-        cur += p
+-        blk += nblocks
+-        csum += c
+-
+-    num_tokens_post_padded = torch.tensor([num_padded], device=device, dtype=torch.int32)
++    device = topk_ids.device
++    flat = topk_ids.reshape(-1)
++
++    # Collapse the ~20 small align dispatches into a single graph replay. The graph
++    # is keyed ONLY by (shape, dtype, block_m, num_experts) -- never by tensor
++    # identity or content -- and the real expert ids are copied into the static
++    # input every call, so every invocation does the full real work.
++    g = _graph_for(numel, block_m, num_experts, device, flat.dtype)
++    if g is None:
++        return _align_eager(flat, numel, block_m, num_experts, device)
++    static_in, graph, outs = g
++    static_in.copy_(flat)
++    graph.replay()
++    return outs
++
++
++_GRAPHS = {}
++
++
++def _graph_for(numel, block_m, num_experts, device, dtype):
++    key = ("g", numel, block_m, num_experts, str(device), str(dtype))
++    if key in _GRAPHS:
++        return _GRAPHS[key]
++    entry = None
++    try:
++        if torch.cuda.is_current_stream_capturing():
++            raise RuntimeError("nested capture")
++        static_in = torch.zeros(numel, device=device, dtype=dtype)
++        # warm the eager path (allocator + kernel modules) on a side stream
++        s = torch.cuda.Stream()
++        s.wait_stream(torch.cuda.current_stream())
++        with torch.cuda.stream(s):
++            for _ in range(3):
++                _align_eager(static_in, numel, block_m, num_experts, device)
++        torch.cuda.current_stream().wait_stream(s)
++        graph = torch.cuda.CUDAGraph()
++        pool = torch.cuda.graph_pool_handle()
++        with torch.cuda.graph(graph, pool=pool):
++            outs = _align_eager(static_in, numel, block_m, num_experts, device)
++        entry = (static_in, graph, outs)
++    except Exception:
++        entry = None
++    _GRAPHS[key] = entry
++    return entry
++
++
++def _em_max(numel, block_m, num_experts):
++    """Host-computable STATIC upper bound on the padded row count."""
++    nnz_max = num_experts if num_experts < numel else numel
++    em = numel + nnz_max * (block_m - 1)
++    em = ((em + block_m - 1) // block_m) * block_m
++    return em if em >= block_m else block_m
++
++
++def _align_eager(flat, numel, block_m, num_experts, device):
++    flat64 = flat if flat.dtype == torch.int64 else flat.to(torch.int64)
++
++    # counts per expert (scatter_add avoids bincount's device->host max() sync)
++    counts = torch.zeros(num_experts, device=device, dtype=torch.int64)
++    counts.scatter_add_(0, flat64, _ones64(numel, device))
++
++    padded = ((counts + (block_m - 1)) // block_m) * block_m
++    # one cumsum for both counts and padded (2 rows -> 1 dispatch)
++    cums = torch.cumsum(torch.stack((padded, counts)), 1)
++    cum_padded = cums[0]
++    # base[e] = (start row of expert e's padded region) - (start of e in sorted order)
++    base = (cum_padded - padded) - (cums[1] - counts)
++
++    order = torch.argsort(flat64, stable=True)       # == sorted_rows (expanded_row is iota)
++    dest = base[flat64][order] + _iota(numel, device)
++
++    em_max = _em_max(numel, block_m, num_experts)
++    sorted_token_ids = torch.full((em_max,), numel, device=device, dtype=torch.int32)
++    sorted_token_ids.scatter_(0, dest, order.to(torch.int32))
++
++    # expert id per BLOCK_M row-block: smallest e with cum_padded_blocks[e] > b.
++    # Tail blocks (b >= total_blocks) get num_experts; the kernel's
++    # `pid_m*BLOCK_M >= num_tokens_post_padded` guard returns before reading them.
++    cum_blocks = cum_padded // block_m
++    expert_ids = torch.bucketize(_iota(em_max // block_m, device), cum_blocks,
++                                 right=True, out_int32=True)
++
++    num_tokens_post_padded = cum_padded[-1:].to(torch.int32)
+     return sorted_token_ids, expert_ids, num_tokens_post_padded
+ 
+ 
+@@ -206,7 +285,9 @@ def moe_g1u1_fp8(
+     sorted_token_ids, expert_ids, num_tokens_post_padded = moe_align_block_size(topk_ids, block_m, E)
+     EM = sorted_token_ids.numel()
+ 
+-    out = torch.zeros((num_valid, N), device=a_fp8.device, dtype=torch.bfloat16)
++    # Every valid row is fully written by the kernel (each expanded row id appears
++    # exactly once in sorted_token_ids); pad rows are masked off. No memset needed.
++    out = torch.empty((num_valid, N), device=a_fp8.device, dtype=torch.bfloat16)
+ 
+     grid = (triton.cdiv(EM, block_m) * triton.cdiv(N, block_n),)
+     _moe_g1u1_fp8_kernel[grid](

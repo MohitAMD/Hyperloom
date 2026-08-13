@@ -1,0 +1,53 @@
+# Magpie baseline benchmark config for vLLM — PHASE C NATIVE single-node.
+# This is a private-asset-root override (INFERENCE_OPTIMIZER_ASSET_ROOT) used
+# ONLY by the Phase C container-native run. It deliberately does NOT carry the
+# 2-node MoRIIO disagg wrap (hl_benchmark_disagg.sh) that the shared/shipped
+# baseline_vllm.yaml uses for Phase B. With runner_type fed in at runtime and
+# NO benchmark_script set here, materialize_config_with_envs pins the native
+# {framework}_{runner_type}.sh -> vllm_mi300x.sh, which launches a LOCAL
+# `vllm serve` on the 8 visible GPUs (colocated TP=8) that Hyperloom owns and
+# can profile / recompile kernels / git-apply framework patches against.
+
+benchmark:
+  framework: vllm
+  # benchmark_script intentionally UNSET -> Magpie resolver picks vllm_<runner>.sh
+  model: /shared_inference/models_blog/GLM-5.1-FP8  # OVERRIDDEN at runtime
+  precision: fp8
+  run_mode: local
+
+  envs:
+    # Last-resort fallbacks only; the CLI projects the resolved workload
+    # (flag > resume-state > default) into these envs before launch.
+    TP: 8
+    CONC: 128
+    ISL: 32000
+    OSL: 8000
+    RANDOM_RANGE_RATIO: 1
+    MAX_MODEL_LEN: 49152
+    # 32k/8k is KV-cache-limited to ~30 effective concurrency and each request
+    # decodes 8k tokens, so a large NUM_PROMPTS makes the warmup+measured
+    # benchmark exceed the action wall. Pin a small, credible steady-state
+    # count (>= effective concurrency, ~4 waves) so each round finishes well
+    # inside the (raised) timeout and leaves the wall to GEAK.
+    NUM_PROMPTS: 128
+    NUM_PROMPTS_FACTOR: 1
+    JIT_CACHE_PERSIST: 1
+    RUN_EVAL: "false"
+    # Container-native PATH: no /opt/venv in the Recipe 9 image. python3 ->
+    # /usr/bin/python3 (torch+vllm+bench deps); vllm -> /usr/local/bin/vllm
+    # (shebang pins /usr/bin/python3.12). claude/node on ~/.local + nvm.
+    PATH: "/home/mdeopuja/.local/bin:/home/mdeopuja/.nvm/versions/node/v22.22.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    # ROCR_VISIBLE_DEVICES injected at runtime by baseline.py (0..TP-1).
+
+  gpu_selection:
+    auto: false
+
+  timeout_seconds: 14400
+
+  profiler:
+    torch_profiler:
+      enabled: false
+    system_profiler:
+      enabled: false
+    tracelens:
+      enabled: false

@@ -1,0 +1,821 @@
+[
+  {
+    "idx": 0,
+    "output_path": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/phaseC2/verify_ws/kernel-agent/runs/verifyfix/20260811T203914Z_tl-91ac4b16/tracelens/trace_split/mixed_steady_state_prefill_0_prefilldecode_3_decode_29_bs1257_conc124_dp0_pp0_tp0_dcp0_ep0_rank0.1786443329043716575.json.gz",
+    "event_count": 8013134,
+    "num_gpu_events": 122836,
+    "gpu_duration": 10587885.268066406,
+    "gpu_busy_duration": 10563297.916999467,
+    "steps": [
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 125,
+        "num_requests": 125,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 125,
+        "generation_sum": 125
+      },
+      {
+        "batch_size": 124,
+        "num_requests": 124,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 124,
+        "generation_sum": 124
+      },
+      {
+        "batch_size": 4096,
+        "num_requests": 124,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 124,
+        "generation_sum": 4096
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 124,
+        "generation_sum": 8192
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 1,
+        "context_sum": 7852,
+        "generation_requests": 123,
+        "generation_sum": 340
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 123,
+        "context_requests": 2,
+        "context_sum": 8071,
+        "generation_requests": 121,
+        "generation_sum": 121
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 123,
+        "context_requests": 2,
+        "context_sum": 8071,
+        "generation_requests": 121,
+        "generation_sum": 121
+      }
+    ],
+    "phase": {
+      "num_prefill": 0,
+      "num_prefilldecode": 3,
+      "num_decode": 29,
+      "avg_bs": 1257,
+      "avg_conc": 124
+    }
+  },
+  {
+    "idx": 0,
+    "output_path": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/phaseC2/verify_ws/kernel-agent/runs/verifyfix/20260811T203914Z_tl-91ac4b16/tracelens/trace_split/decode_only_steady_state_prefill_0_prefilldecode_0_decode_32_bs126_conc126_dp0_pp0_tp0_dcp0_ep0_rank0.1786443329043716575.json.gz",
+    "event_count": 5880832,
+    "num_gpu_events": 115040,
+    "gpu_duration": 6933385.0048828125,
+    "gpu_busy_duration": 6906507.225999594,
+    "steps": [
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      },
+      {
+        "batch_size": 126,
+        "num_requests": 126,
+        "context_requests": 0,
+        "context_sum": 0,
+        "generation_requests": 126,
+        "generation_sum": 126
+      }
+    ],
+    "phase": {
+      "num_prefill": 0,
+      "num_prefilldecode": 0,
+      "num_decode": 32,
+      "avg_bs": 126,
+      "avg_conc": 126
+    }
+  },
+  {
+    "idx": 0,
+    "output_path": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/phaseC2/verify_ws/kernel-agent/runs/verifyfix/20260811T203914Z_tl-91ac4b16/tracelens/trace_split/prefilldecode_steady_state_prefill_0_prefilldecode_32_decode_0_bs8192_conc123_dp0_pp0_tp0_dcp0_ep0_rank0.1786443329043716575.json.gz",
+    "event_count": 20210527,
+    "num_gpu_events": 169516,
+    "gpu_duration": 30740322.35986328,
+    "gpu_busy_duration": 30734141.291999597,
+    "steps": [
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 1,
+        "context_sum": 7852,
+        "generation_requests": 123,
+        "generation_sum": 340
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 123,
+        "context_requests": 2,
+        "context_sum": 8071,
+        "generation_requests": 121,
+        "generation_sum": 121
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 123,
+        "context_requests": 2,
+        "context_sum": 8071,
+        "generation_requests": 121,
+        "generation_sum": 121
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 3,
+        "context_sum": 8071,
+        "generation_requests": 121,
+        "generation_sum": 121
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      },
+      {
+        "batch_size": 8192,
+        "num_requests": 124,
+        "context_requests": 2,
+        "context_sum": 8070,
+        "generation_requests": 122,
+        "generation_sum": 122
+      }
+    ],
+    "phase": {
+      "num_prefill": 0,
+      "num_prefilldecode": 32,
+      "num_decode": 0,
+      "avg_bs": 8192,
+      "avg_conc": 123
+    }
+  }
+]

@@ -1,0 +1,96 @@
+# Insight Log — `fp8_mqa_logits` / `_fp8_mqa_logits_kernel` (Triton, gfx942 / MI300X-class)
+
+Baseline geomean 5.5324 ms. Cumulative best after round 1: **0.8169 ms = 6.77x** (integrated
+`r1_d0 + r1_d1`). Correctness: `err_ratio=0.0000`, `cos_diff=3.5e-09`, ALL PASSED.
+
+---
+
+## Round 1
+
+| id | specialty | title | expected | verified | verdict |
+|---|---|---|---|---|---|
+| r1_d0 | compute | Native fnuz fp8 MFMA in the kernel dot | 3.5x | 2.7928x | partial (confirmed mechanism) |
+| r1_d1 | host_runtime | Repair launcher tile heuristic + host-side waste | 1.9x | 2.0512x | confirmed |
+| integrate | — | stacked r1_d0 + r1_d1 (clean `git apply`, no hand-merge) | — | **6.7551x** | super-multiplicative |
+
+Winner: integrated patch,
+`round_1/integrate/integrated_patch.diff`. Per-case 5.32 / 7.01 / 7.53 / 7.41x
+(M=2048/4096/8000/8192); arithmetic 34.877 -> 4.762 ms = 7.32x.
+
+Bottleneck shift: **compute(software fp8->fp16 dequant) -> compute(VALU tax around a native
+MFMA)**. Inner KV loop 2570 instrs / 16 `v_mfma_f32_32x32x8_f16` -> 884 instrs / 64
+`v_mfma_f32_16x16x32_fp8_fp8`. Occupancy 25% -> 37.5% (240 -> 168 VGPRs). 2.8% -> 16.5-21.7%
+of fp8 MFMA peak.
+
+---
+
+## Insight blackboard (durable)
+
+1. **The baseline was doing fp8 math in fp16.** The dot compiled to `v_mfma_f32_32x32x8_f16`;
+   bitcasting the operands to `tl.float8e4b8` (fnuz, the gfx942-native format) emits
+   `v_mfma_f32_16x16x32_fp8_fp8` and deletes ~97% of the inner loop. This single change is the
+   whole 2.79x of r1_d0.
+2. **The fnuz 0x80 NaN scrub is a correctness PREREQUISITE, not an optimization.** Without it
+   `err_ratio` is exactly 0.1831 = the fraction of K columns containing >=1 `0x80` byte (375/2048);
+   one NaN byte poisons its entire output column.
+3. **The cheapest scrub is an int8 saturate, not compare+select.** Viewed as int8, `0x80` is
+   `INT8_MIN`, so one `tl.maximum(x, -127)` neutralises it and is the identity on every other
+   byte. In-loop cost 761 -> 634 instrs vs a compare/select form. `0x80 -> 0x81` turns a would-be
+   zero into +-2^-9; measured max rel. error 1.9e-3, ~26x under the 5e-2 gate.
+4. **Scrub placement beats scrub formulation: hoist it host-side.** `k_fp8` is `[N,D]`; the in-loop
+   scrub re-scrubs the same bytes once per output row (M times). One
+   `torch.clamp_min(k_fp8.view(torch.int8), -127).view(fp8)` in the launcher removes 258 instrs
+   (29% of the loop). MEASURED 1.19x, correctness ALL PASSED (0.5673 -> 0.4848 ms at M=4096).
+   A no-scrub-at-all probe runs 0.4758 ms, so the host hoist captures ~98% of this headroom —
+   nothing left after it lands. This is the round-2 must-do.
+5. **The LDS gate bug was a units error, not a budget problem.** `kv_bytes = head_size*BLOCK_KV*
+   NUM_STAGES` put `NUM_STAGES` in the bytes-per-element slot, modelling a 16-bit KV tile, and so
+   rejected `BLOCK_KV=128`. Measured `kernel.metadata.shared` for (128, ns=2, H=64, D=128) is
+   **16896 B**, not 32768: `num_stages=2` does NOT double LDS here because the pipeliner keeps
+   stage 2 in registers for a single-dot loop. `BLOCK_KV=256` is still correctly rejected (33280 B)
+   and also measures slower.
+6. **The two lanes COMPOUND, they do not overlap.** 2.79 x 2.05 = 5.73 predicted, 6.76 measured.
+   Reason: the native fp8 MFMA halves the KV operand width, which is exactly what makes the
+   corrected LDS model admit the 128-wide tile. Keeping the kernel-body lane strictly inside
+   `@triton.jit` and the host lane strictly in the launcher gave a zero-conflict stack.
+7. **`waves_per_eu=3` is worth ~6% and was not in the plan.** 2 / 3 / 4 -> 0.5855 / 0.5567 /
+   0.5786 ms at M=4096; 4 is a cliff. Re-probed under the new fnuz kernel and still optimal.
+8. **The kernel did NOT flip to latency-bound (C2) as round 0 predicted.** `waves_per_eu=4` is
+   slower than 3 and `num_warps=8` is slower than 4 — the anti-signature of issue-wait. More
+   resident waves do not help; fewer instructions do.
+9. **The tuning search space is EXHAUSTED — do not re-sweep.** All five axes are strict interior
+   optima with both neighbours worse: `BLOCK_KV` 64/128/256 = 0.873/**0.557**/1.137;
+   `matrix_instr_nonkdim` 16/32 = **0.557**/0.706; `num_stages` 1/2/3/4 = 1.620/**1.583**/2.292/
+   2.313; `num_warps` 1/2/4/8 = 10.75/2.89/**1.60**/3.01; `waves_per_eu` 2/3/4 = 0.586/**0.557**/
+   0.579.
+10. **No launch/overhead floor exists here.** Exactly 1 dispatch per call; latency scales linearly
+    with work (78/138/244/250 ns per Melem) and the SMALL cases are cheaper per element — the
+    opposite of an overhead-bound signature. HIP-graph capture / dispatch collapse is not a lever
+    for this op. HBM at 148-215 GB/s = 2.8-4.1% of 5.3 TB/s, so not memory-bound either.
+11. **Dropping the `torch.full(-inf)` prefill needs a KERNEL-side epilogue, not a host test.**
+    The fill costs 8.7/20.4/55.9/52.0 us (~1.5-3% end-to-end, now a bigger share than at baseline),
+    but any host-side "is the window full?" check needs a `.item()` sync costing 60-67 us flat —
+    a net loss. `torch.empty` alone is 9.1 vs 27.2 us at M=4096, so the ceiling is ~18 us / ~3%.
+12. **`input_precision="ieee"` is a no-op with native fp8 operands.** 0.5651 vs 0.5683 ms —
+    inside noise. Closed.
+
+## Confirmed dead-ends (do not re-explore)
+
+- Transposing the dot to `[BLOCK_KV, NUM_HEADS]` so heads become the contiguous reduction axis:
+  **2.4x REGRESSION** (3.923 vs 1.647 ms); `tl.trans` on fp8 operands forces a costly relayout.
+- Replacing `tl.sum` with a cheaper cross-lane tree (probed via `tl.max`): slower (2.168 vs
+  1.975 ms) — the DPP chain is already near the compiler's floor for this layout.
+- Host-side "window already full" test to skip the `-inf` prefill: sync cost > fill cost.
+- `matrix_instr_nonkdim=32`, `waves_per_eu=4`: both re-probed under the fnuz kernel, both regress.
+- `input_precision="ieee"`: no measurable effect.
+
+## Remaining headroom
+
+- #4 host-side K scrub: measured **1.19x** -> geomean ~0.69 ms = **~8.0x**. Safe, verified.
+- Cross-lane `tl.sum` over NUM_HEADS=64 (14% of the loop): bounded at ~1.10x, but both cheap
+  reformulations already regressed. The only untried route is folding `w_block` into the MFMA
+  (scale Q per-head before the dot) — blocked by the `relu` sitting between dot and head-sum, so
+  it needs real algebra. Speculative.
+- Kernel-side `-inf` epilogue replacing `torch.full`: ~1.5-3%, freebie only.
+- Structural ceiling ~20-25% of fp8 MFMA peak: the op is a rank-128 dot plus a 64-way cross-lane
+  reduction per 128 outputs, and the MFMA is only 7.2% of issued instruction slots.

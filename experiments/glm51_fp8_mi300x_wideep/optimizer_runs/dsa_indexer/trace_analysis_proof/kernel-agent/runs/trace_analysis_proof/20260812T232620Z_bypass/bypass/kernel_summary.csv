@@ -1,0 +1,7 @@
+kernel_category,kernel_count,total_gpu_pct,total_duration_us,mean_efficiency_percent,dominant_bound_type,routable_count
+Others,6,94.7787,8609171.301,,,2
+MoE,3,1.5483,140648.692,,,1
+Quantization,2,0.7132,64779.791,0.003,memory_bound,1
+GEMM,4,0.5775,52458.553,7.162,memory_bound,0
+Elementwise,3,0.4004,36367.729,0.321,memory_bound,0
+Normalization,2,0.3157,28672.078,0.005,memory_bound,2

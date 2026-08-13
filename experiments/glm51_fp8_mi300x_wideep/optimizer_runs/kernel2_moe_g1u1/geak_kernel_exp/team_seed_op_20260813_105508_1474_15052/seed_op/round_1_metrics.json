@@ -1,0 +1,24 @@
+{
+  "round": 1,
+  "bottleneck": "latency",
+  "latency_subcase": "C2_issue_wait",
+  "profiler_used": "rocprofv3",
+  "device": "MI300X-class / gfx942 / CDNA3, 304 CU, 8 XCD, 192GB HBM, ~5.3 TB/s nameplate",
+  "dispatch_count": 28,
+  "geomean_ms": 4.4462,
+  "geomean_speedup_vs_baseline": 3.384,
+  "per_case_ms": {"case0": 2.5848, "case1": 4.1395, "case2": 5.6691, "case3": 6.4427},
+  "key_metrics": {
+    "valu_pct": 29.8, "mfma_busy_pct": 2.97, "vmem_pct": null, "lds_pct": 0,
+    "hbm_gbps": 1020, "hbm_pct_of_peak": 19.2, "l2_hit_pct": 2.2,
+    "vgpr": 120, "arch_vgpr": 108, "accum_vgpr": 12, "sgpr": 42,
+    "scratch_bytes": 0, "lds_bytes": 0, "waves_per_simd": 4, "occupancy_pct": 50,
+    "workgroups": 4096, "cu_count": 304,
+    "wave_active_over_active_plus_wait_pct": 54.6,
+    "valu_insts_per_mfma_inst": 160.5, "sq_waves": 16384,
+    "mfma_variant": "v_mfma_f32_16x16x16_f16 x16 (FP16, NOT fp8)",
+    "gemm_share_of_wall_pct": {"case0": 96.8, "case1": 97.6, "case2": 98.0, "case3": 97.9},
+    "align_ms": {"case0": 0.083, "case1": 0.102, "case2": 0.114, "case3": 0.138}
+  },
+  "summary_path": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/kernel2_moe_g1u1/geak_kernel_exp/team_seed_op_20260813_105508_1474_15052/seed_op/round_1_shift_analysis.md"
+}

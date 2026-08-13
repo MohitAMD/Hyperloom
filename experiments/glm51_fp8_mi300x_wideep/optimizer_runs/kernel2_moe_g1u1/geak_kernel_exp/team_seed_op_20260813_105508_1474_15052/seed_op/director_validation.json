@@ -1,0 +1,35 @@
+{
+  "kernel_name": "moe_g1u1_fp8 (seed_op)",
+  "validation_workspace": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/kernel2_moe_g1u1/geak_kernel_exp/team_seed_op_20260813_105508_1474_15052/seed_op/validation_workspace",
+  "patch_applied_cleanly": true,
+  "correctness": "pass",
+  "correctness_detail": "all 4 cases PASS, err_ratio=0.0000, cos_diff <= 1.32e-09",
+  "director_verified_speedup_geomean": 9.1231,
+  "director_verified_speedup_arithmetic": 9.1535,
+  "director_verified_speedup_weighted": null,
+  "director_total_time_ratio": 8.9366,
+  "tech_lead_reported_speedup_geomean": 9.1187,
+  "validation_status": "accepted",
+  "timing_basis": "device_bound",
+  "timing_receipt": null,
+  "timing_receipt_note": "This task ships a plain COMMANDMENT harness (test_harness.py + config.yaml); there is no meta.json / harness_lib.py, so no GEAK_TIMING_RECEIPT is emitted. Director independently checked host-boundness: pipelined 50-iter wall time vs CUDA-event median on the fastest (case=0) and slowest (case=3) cases gave 1.0028 vs 0.9620 ms and 2.3671 vs 2.3364 ms -> both legs device-bound, the ratio is a device-time win, not a dispatch-latency artifact.",
+  "baseline_reverification": {
+    "note": "Re-ran the pristine ORIGINAL kernel from KERNEL_PATH_ORIG in a clean copy",
+    "ms": [10.3946, 14.4033, 17.6923, 19.4959],
+    "frozen_baseline_ms": [10.3734, 14.3788, 17.6388, 19.4824],
+    "max_delta_pct": 0.30
+  },
+  "optimized_runs_ms": [
+    [1.0019, 1.5625, 2.0241, 2.3334],
+    [1.0006, 1.5635, 2.0331, 2.3281]
+  ],
+  "per_case": [
+    {"name": "case=0", "dims": [16, 8, 256, 2048, 6144], "baseline_ms": 10.3734, "optimized_ms": 1.0012, "speedup": 10.3604},
+    {"name": "case=1", "dims": [32, 8, 256, 2048, 6144], "baseline_ms": 14.3788, "optimized_ms": 1.5630, "speedup": 9.1995},
+    {"name": "case=2", "dims": [64, 8, 256, 2048, 6144], "baseline_ms": 17.6388, "optimized_ms": 2.0286, "speedup": 8.6951},
+    {"name": "case=3", "dims": [128, 8, 256, 2048, 6144], "baseline_ms": 19.4824, "optimized_ms": 2.3308, "speedup": 8.3589}
+  ],
+  "applied_to_original": "false",
+  "arbitration_note": "Director geomean 9.1231 vs TechLead 9.1187 (+0.05%, well within 10%). Correctness passes on all 4 cases against the harness's independent fp32 oracle. Accepted.",
+  "final_patch": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/kernel2_moe_g1u1/geak_kernel_exp/team_seed_op_20260813_105508_1474_15052/seed_op/final_patch.diff"
+}

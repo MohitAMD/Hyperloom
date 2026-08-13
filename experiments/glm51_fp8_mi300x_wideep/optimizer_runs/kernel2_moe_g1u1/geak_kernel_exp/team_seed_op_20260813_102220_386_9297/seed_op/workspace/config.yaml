@@ -1,0 +1,27 @@
+# GEAK single-op optimize task: GLM-5.1-FP8 MoE stage-1 GEMM (g1u1).
+# aiter::fmoe_fp8_blockscale_g1u1 -> _moe_g1u1_fp8_kernel (@triton.jit)
+# The kernel-under-optimization is the co-located moe_fp8_blockscale_g1u1.py; the
+# launcher moe_g1u1_fp8 is what test_harness.py times.
+source_file_path:
+- moe_fp8_blockscale_g1u1.py
+target_kernel_functions:
+- _moe_g1u1_fp8_kernel
+- moe_g1u1_fp8
+# test_harness.py is a self-contained runner: it loads the co-located kernel,
+# checks correctness against a pure-torch fp32 oracle (run_ref, independent of the
+# file under optimization), and benchmarks with CUDA events, printing
+# GEAK_RESULT_LATENCY_MS (geomean over cases, ms).
+correctness_command:
+- python3 test_harness.py --correctness
+performance_command:
+- python3 test_harness.py --benchmark
+full_benchmark_command:
+- python3 test_harness.py --full-benchmark
+profile_command:
+- python3 test_harness.py --profile
+task_type: triton2triton
+# Baseline (speedup denominator) = the pristine original moe_fp8_blockscale_g1u1.py
+# copied into baseline/ by the Director. Correctness tolerance: rtol=atol=5e-2,
+# err_ratio<=0.05 (fp8 operands, fp32 accumulation, silu*mul nonlinearity).
+# GLM-5.1-FP8 shapes: K(hidden)=6144, N(moe_intermediate)=2048, E=256, top_k=8,
+# fp8 block=[128,128]. Decode token counts (16/32/64) are the hot trace shapes.

@@ -1,0 +1,20 @@
+{
+  "kernel_name": "seed_op (dsa_indexer fp8_mqa_logits, Triton gfx942)",
+  "director_verified_speedup_geomean": 7.8467,
+  "director_verified_speedup_arithmetic": 7.9743,
+  "director_verified_speedup_weighted": null,
+  "tech_lead_reported_speedup_geomean": 7.8554,
+  "validation_status": "accepted",
+  "correctness": "pass",
+  "timing_basis": "commandment_cuda_event_median",
+  "timing_receipt": null,
+  "per_case": [
+    {"name": "0", "dims": [[2048, 2048, 64, 128]], "dtypes": ["torch.float8_e4m3fn"], "baseline_ms": 1.0605, "optimized_ms": 0.1823, "speedup": 5.8173},
+    {"name": "1", "dims": [[4096, 4096, 64, 128]], "dtypes": ["torch.float8_e4m3fn"], "baseline_ms": 3.9661, "optimized_ms": 0.5072, "speedup": 7.8196},
+    {"name": "2", "dims": [[8000, 8000, 64, 128]], "dtypes": ["torch.float8_e4m3fn"], "baseline_ms": 14.7343, "optimized_ms": 1.5892, "speedup": 9.2715},
+    {"name": "3", "dims": [[8192, 8192, 64, 128]], "dtypes": ["torch.float8_e4m3fn"], "baseline_ms": 15.1161, "optimized_ms": 1.6817, "speedup": 8.9886}
+  ],
+  "applied_to_original": "false",
+  "arbitration_note": "Independently reproduced from a fresh tar-copy of KERNEL_PATH_ORIG + git apply of final_patch.diff (applied cleanly). Correctness: all 4 cases err_ratio=0.0000, ALL CORRECTNESS CHECKS PASSED. Full-benchmark geomean latency 0.7050 ms vs baseline 5.5324 ms -> 7.8467x, within 0.11% of the TechLead's 7.8554x claim -> accepted. No harness_lib.py/meta.json in this task dir (plain kernel dir, not an oracle_freezer task), so no served-regime weighted metric and no GEAK_TIMING_RECEIPT contract exists; the COMMANDMENT's unweighted 4-case geomean is the defined PRIMARY metric. Timing is CUDA-event median over 20 warmup + 50 timed iters at 0.18-1.68 ms/case, well above dispatch noise, and wins are largest on the dominant long-context cases 2/3, so the result is not host-bound.",
+  "final_patch": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/dsa_indexer/geak_kernel_exp/team_seed_op_20260813_040403_598_4778/seed_op/final_patch.diff"
+}

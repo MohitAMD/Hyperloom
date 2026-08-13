@@ -1,0 +1,42 @@
+{
+  "engineer_id": "r2_d0",
+  "specialty": "host_runtime",
+  "task": "Hoist the K 0x80 fnuz scrub out of the inner loop to a one-shot host-side clamp (+optional -inf prefill retirement)",
+  "strategy": "Step1: torch.clamp_min(k_fp8.view(int8),-127).view(fp8) once in the launcher (out-of-place, contiguity-guarded, strides re-read), both in-kernel scrubs deleted and bitcast chain simplified to a direct load->tl.float8e4b8. Step2 (KEPT): logits=torch.empty + kernel-side -inf epilogue writing [0,start_ind) and [end_ind,seq_len_kv) of each program's own row, replacing torch.full(-inf).",
+  "speedup_geomean": 7.8765,
+  "speedup_arithmetic": 8.8158,
+  "speedup_weighted": 8.8158,
+  "per_case": [
+    {
+      "name": "0",
+      "baseline_ms": 1.0605,
+      "optimized_ms": 0.1809,
+      "speedup": 5.8624
+    },
+    {
+      "name": "1",
+      "baseline_ms": 3.9661,
+      "optimized_ms": 0.503,
+      "speedup": 7.8849
+    },
+    {
+      "name": "2",
+      "baseline_ms": 14.7343,
+      "optimized_ms": 1.5902,
+      "speedup": 9.2657
+    },
+    {
+      "name": "3",
+      "baseline_ms": 15.1161,
+      "optimized_ms": 1.6821,
+      "speedup": 8.9864
+    }
+  ],
+  "status": "success",
+  "patch_file": "best_patch.diff",
+  "strategies_tried": [
+    "P4-LAUNCH: host-side one-shot torch.clamp_min K scrub, in-loop+tail scrub deleted (0.8169 -> 0.7149 ms geomean, 6.77x -> 7.74x)",
+    "P0-ALG: retire torch.full(-inf) prefill for torch.empty + per-row kernel -inf epilogue (0.7149 -> ~0.7040 ms, KEPT after 3v4 alternating A/B)"
+  ],
+  "notes": "Direction reproduced and exceeded. Step 1 alone: geomean 0.7149 ms = 7.74x; at M=4096 0.4908-0.5130 ms vs the predicted 0.4848 and the no-scrub INVALID ceiling 0.4758, so the scrub topic is closed. Step 2 was measured as a separate A/B and KEPT: alternating full-benchmark runs gave torch.full 0.7149/0.7095/0.7162 vs empty+epilogue 0.7064/0.7056/0.6998/0.7042 -- every Step-2 run beats every Step-1 run and it wins on all 4 cases individually, so the FillFunctor dispatch is genuinely worth ~1.5% now that the kernel is 7x faster, and the extra out-of-window store traffic does NOT eat it (windows are near-full on these shapes, so the epilogue writes almost nothing). No host-side fullness test / .item() sync was used, so it stays HIP-graph-capture safe. Correctness unchanged at err_ratio=0.0000 / cos_diff 3.45e-09..3.55e-09 on all four cases. The clamp is out-of-place (never mutates the caller's k_fp8), guarded on k_fp8.stride(-1)!=1, and strides are re-read from the new tensor. Patch applies clean to the canonical workspace. No HARD DO-NOT item was retested."
+}

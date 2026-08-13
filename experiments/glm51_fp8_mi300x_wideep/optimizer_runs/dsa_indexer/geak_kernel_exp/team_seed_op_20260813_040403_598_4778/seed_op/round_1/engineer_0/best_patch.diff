@@ -1,0 +1,74 @@
+diff --git a/triton_fp8_mqa_logits.py b/triton_fp8_mqa_logits.py
+index 619d0ec..abe50b8 100644
+--- a/triton_fp8_mqa_logits.py
++++ b/triton_fp8_mqa_logits.py
+@@ -94,9 +94,28 @@ def _fp8_mqa_logits_kernel(
+         Q_ptr + row_id * stride_q_s + h_inds * stride_q_h + d_inds[None, :] * stride_q_d
+     )
+ 
+-    q_block = tl.load(q_ptrs, cache_modifier=".cg")
++    # ---- native gfx942 fp8 MFMA path -------------------------------------
++    # Operands arrive as OCP e4m3 (`torch.float8_e4m3fn`). CDNA3 has a native
++    # fp8 MFMA only for the *fnuz* encodings, so without this Triton emits a
++    # ~2500-instruction software fp8->fp16 upconvert per KV tile and runs
++    # `v_mfma_f32_32x32x8_f16`. e4m3fn and e4m3fnuz share the exact same 1-4-3
++    # bit layout and differ only in exponent bias (7 vs 8), so a raw BITCAST
++    # reinterprets every value as exactly v/2 (bit-exact, denormals included).
++    # One exception: byte 0x80 is -0.0 in OCP e4m3 but NaN in e4m3fnuz, so it
++    # must be scrubbed to 0x00 first.
++    #
++    # Q is loop-invariant (loaded once per program) so scrubbing it here is
++    # free. Two bitcast operands make the dot produce (q.k)/4; the correcting
++    # *4 is folded into the loop-invariant per-head `w_block` below. That is
++    # exact because 1/4 is a positive power of two, so relu(x/4) == relu(x)/4:
++    #     relu((q.k/4) * kv_scale) * (4*w) == relu((q.k) * kv_scale) * w.
++    q_bits = tl.load(q_ptrs, cache_modifier=".cg").to(tl.uint8, bitcast=True)
++    q_bits = tl.where(q_bits == 0x80, 0, q_bits).to(tl.uint8)
++    q_block = q_bits.to(tl.float8e4b8, bitcast=True)
++
+     w_ptrs = weights_ptr + row_id * stride_w_s + h_inds * stride_w_h
+-    w_block = tl.load(w_ptrs, cache_modifier=".cg").to(tl.float32)
++    # `* 4.0` undoes the 2x-per-operand bias shift of the fnuz reinterpretation.
++    w_block = tl.load(w_ptrs, cache_modifier=".cg").to(tl.float32) * 4.0
+ 
+     # Load start/end for each row in this block
+     start_ind = tl.load(cu_start_ptr + row_id)
+@@ -118,10 +137,24 @@ def _fp8_mqa_logits_kernel(
+ 
+     # Loop over KV tiles
+     for _ in tl.range(0, shifted_unmasked_end, BLOCK_KV):
+-        kv_block = tl.load(kv_ptrs)
++        # K must have its 0x80 (OCP -0.0 / fnuz NaN) bytes scrubbed too, but
++        # unlike Q this is INSIDE the hot loop, so the formulation matters.
++        # Viewing the byte as int8, 0x80 is exactly INT8_MIN, so a single
++        # saturating `maximum(x, -127)` neutralises it and is the identity on
++        # every other byte. That is one VALU op vs the compare+select+mask
++        # chain an `x == 0x80 -> 0` scrub compiles to (measured: 634 vs 761
++        # inner-loop instructions, 1.41 vs 1.60 ms at M=4096).
++        # It maps 0x80 -> 0x81 rather than 0x00, i.e. a would-be 0 term
++        # becomes +-2^-9 after the bias fixup. The resulting error is bounded
++        # and tiny (measured max relative error 1.9e-3 vs the fp32 oracle,
++        # err_ratio 0.0000 on all four cases, gate is 5e-2 / 0.02).
++        kv_bits = tl.load(kv_ptrs).to(tl.int8, bitcast=True)
++        kv_bits = tl.maximum(kv_bits, -127).to(tl.int8)
++        kv_block = kv_bits.to(tl.float8e4b8, bitcast=True)
+         kv_scales = tl.load(kv_scales_ptrs)
+ 
+         # [NUM_HEADS, BLOCK_KV] = [NUM_HEADS, HEAD_SIZE] x [HEAD_SIZE, BLOCK_KV]
++        # both operands are fnuz -> `v_mfma_f32_*_fp8_fp8` (no upconvert)
+         scores = tl.dot(q_block, kv_block, input_precision="ieee")
+         # Multiply by kv_scales (broadcast along rows)
+         scores = scores * kv_scales[None, :]
+@@ -139,7 +172,11 @@ def _fp8_mqa_logits_kernel(
+ 
+     # masked load
+     kv_col_mask = kv_col_offsets < end_ind
+-    kv_block = tl.load(kv_ptrs, mask=kv_col_mask[None, :], other=0.0)
++    kv_bits = tl.load(kv_ptrs, mask=kv_col_mask[None, :], other=0.0).to(
++        tl.int8, bitcast=True
++    )
++    kv_bits = tl.maximum(kv_bits, -127).to(tl.int8)
++    kv_block = kv_bits.to(tl.float8e4b8, bitcast=True)
+     kv_scales = tl.load(kv_scales_ptrs, mask=kv_col_mask, other=0.0)
+ 
+     # [NUM_HEADS, BLOCK_KV] = [NUM_HEADS, HEAD_SIZE] x [HEAD_SIZE, BLOCK_KV]

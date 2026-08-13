@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: MIT
+
+"""Multi-node inference optimization helpers.
+
+Used when a session needs more GPU memory than one pod provides. The
+sandbox agent drives this CLI (``python3 -m hyperloom.inference_optimizer.multi_node
+<subcommand>``) to create one session-scoped SaFE RayJob with N GPU pods,
+bootstrap the toolchain, restart servers without recreating pods (so the
+aiter JIT cache survives), and stop the RayJob at session end.
+
+Control channels: sandbox↔SaFE via REST; sandbox↔inference RayJob via Ray
+Dashboard REST (port 8265). This package must not ``import ray`` /
+``ray.init(address=...)`` for that cluster.
+"""

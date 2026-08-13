@@ -1,0 +1,20 @@
+{
+  "test_cases": [
+    {"name": "0", "latency_ms": 1.0605, "params": "M=2048 N=2048 H=64 D=128 torch.float8_e4m3fn"},
+    {"name": "1", "latency_ms": 3.9661, "params": "M=4096 N=4096 H=64 D=128 torch.float8_e4m3fn"},
+    {"name": "2", "latency_ms": 14.7343, "params": "M=8000 N=8000 H=64 D=128 torch.float8_e4m3fn"},
+    {"name": "3", "latency_ms": 15.1161, "params": "M=8192 N=8192 H=64 D=128 torch.float8_e4m3fn"}
+  ],
+  "geomean_ms": 5.5324,
+  "workload_aligned": false,
+  "num_test_cases": 4,
+  "reliable": true,
+  "max_spread_pct": 0.264,
+  "runs_ms": [
+    [1.0584, 3.9661, 14.7191, 15.0891],
+    [1.0605, 3.9657, 14.7343, 15.1161],
+    [1.0607, 3.9684, 14.7421, 15.1290]
+  ],
+  "arith_sum_ms": 34.877,
+  "notes": "Median of 3 full-benchmark runs via gpu_lock.sh 0 on MI300X gfx942. Baseline = pristine original triton_fp8_mqa_logits.py (real vLLM/aiter gfx942 kernel), not a naive reimplementation. Cross-run spread <= 0.27% on every case."
+}

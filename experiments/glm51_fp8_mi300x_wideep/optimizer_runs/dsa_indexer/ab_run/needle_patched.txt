@@ -1,0 +1,7 @@
+[PASS] ~29512 ctx tok, gold='47823'
+   tail: act the Answer:** The code is 47823.  4.  **Formulate the Output:** The user asked for the final answer clearly. I will state the code directly.</think>The secret vault code for Buenos Aires is 47823.
+[PASS] ~41320 ctx tok, gold='6391'
+   tail: r:** The question asks for the locker number.     *   The text says: "locker number 6391".  5.  **Formulate the Output:** The user asked for the final answer clearly.     *   Answer: 6391.</think>6391
+[PASS] ~47220 ctx tok, gold='Tavistock'
+   tail: e Output:** The question asks for the village. The answer is Tavistock.  6.  **Final Review:** Does the answer directly address the prompt? Yes. Is it accurate based on the text? Yes.</think>Tavistock
+=== NEEDLE (long-ctx, full reasoning): 3/3 ===

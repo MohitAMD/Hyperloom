@@ -1,0 +1,2392 @@
+{
+  "category": "triton",
+  "status": "OK",
+  "comparison_scope": "standalone",
+  "total_time_ms": 183.873,
+  "percent_of_compute": 1.74,
+  "operation_count": 17652,
+  "operations": [
+    {
+      "name": "triton_poi_fused_2",
+      "count": 300,
+      "time_ms": 39.882,
+      "percent_of_category": 21.69,
+      "percent_of_total": 0.38,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 1.96,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 4096), (8192,), (202752, 64), (8192, 2048), (8192, 32, 128), (8192, 8, 256), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(8192,4096) bf16<br>(8192,) long int<br>(202752,64) bf16<br>(8192,2048) bf16<br>(8192,32,128) bf16<br>(8192,8,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call",
+      "kernel_name": "triton_poi_fused_2",
+      "kernel_name_trunc": "triton_poi_fused_2",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_add_0",
+      "count": 300,
+      "time_ms": 23.684,
+      "percent_of_category": 12.88,
+      "percent_of_total": 0.22,
+      "efficiency": {
+        "tflops_achieved": 0.64,
+        "tb_s_achieved": 3.83,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.17,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 6144), (8192, 6144), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar')",
+      "args": "(8192,6144) bf16<br>(8192,6144) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ah/cahrrja3376b4vjpzp6kzcwat56qspehnidvoiza5rrivjdigfuc.py(1445): call",
+      "kernel_name": "triton_poi_fused_add_0",
+      "kernel_name_trunc": "triton_poi_fused_add_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ah/cahrrja3376b4vjpzp6kzcwat56qspehnidvoiza5rrivjdigfuc.py(1445): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "count": 312,
+      "time_ms": 14.359,
+      "percent_of_category": 7.81,
+      "percent_of_total": 0.14,
+      "efficiency": {
+        "tflops_achieved": 2.46,
+        "tb_s_achieved": 3.28,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.75,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 8, 512), (8192, 8, 64), (), (8192, 4608), (), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'float', 'c10::Float8_e4m3fnuz', 'Scalar', 'Scalar')",
+      "args": "(8192,8,512) bf16<br>(8192,8,64) bf16<br>() fp32<br>(8192,4608) fp8",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/yj/cyjifma6smm27qh2fyuj57ftcskfkwr6yyanszodvhjajcceewsn.py(115): call",
+      "kernel_name": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM",
+        "_DecodeConcatQuantFP8"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm::unified_mla_attention_with_output",
+        "vllm/model_executor/layers/attention/kv_transfer_utils.py(37): wrapper",
+        "vllm/model_executor/layers/attention/mla_attention.py(1080): unified_mla_attention_with_output",
+        "vllm/model_executor/layers/attention/mla_attention.py(624): forward_impl",
+        "vllm/v1/attention/backends/mla/rocm_aiter_mla_sparse.py(728): forward_mqa",
+        "nn.Module: _DecodeConcatQuantFP8",
+        "vllm/model_executor/custom_op.py(135): forward",
+        "vllm/model_executor/custom_op.py(248): wrapper",
+        "vllm/model_executor/layers/attention/mla_attention.py(1187): forward",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/yj/cyjifma6smm27qh2fyuj57ftcskfkwr6yyanszodvhjajcceewsn.py(115): call"
+      ]
+    },
+    {
+      "name": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "count": 2025,
+      "time_ms": 11.48,
+      "percent_of_category": 6.24,
+      "percent_of_total": 0.11,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.01,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 160), (128,), (128,), (128, 128), (), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(128,160) bf16<br>(128,) fp32<br>(128,) fp32<br>(128,128) bf16",
+      "classification": {
+        "kernel_type": "persistent"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "kernel_name_trunc": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "count": 2028,
+      "time_ms": 11.245,
+      "percent_of_category": 6.12,
+      "percent_of_total": 0.11,
+      "efficiency": {
+        "tflops_achieved": 0.31,
+        "tb_s_achieved": 0.42,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.75,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((125, 8, 512), (125, 8, 64), (), (125, 4608), (), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'float', 'c10::Float8_e4m3fnuz', 'Scalar', 'Scalar')",
+      "args": "(125,8,512) bf16<br>(125,8,64) bf16<br>() fp32<br>(125,4608) fp8",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/yj/cyjifma6smm27qh2fyuj57ftcskfkwr6yyanszodvhjajcceewsn.py(115): call",
+      "kernel_name": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM",
+        "_DecodeConcatQuantFP8"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm::unified_mla_attention_with_output",
+        "vllm/model_executor/layers/attention/kv_transfer_utils.py(37): wrapper",
+        "vllm/model_executor/layers/attention/mla_attention.py(1080): unified_mla_attention_with_output",
+        "vllm/model_executor/layers/attention/mla_attention.py(624): forward_impl",
+        "vllm/v1/attention/backends/mla/rocm_aiter_mla_sparse.py(728): forward_mqa",
+        "nn.Module: _DecodeConcatQuantFP8",
+        "vllm/model_executor/custom_op.py(135): forward",
+        "vllm/model_executor/custom_op.py(248): wrapper",
+        "vllm/model_executor/layers/attention/mla_attention.py(1187): forward",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/yj/cyjifma6smm27qh2fyuj57ftcskfkwr6yyanszodvhjajcceewsn.py(115): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_add_0",
+      "count": 2025,
+      "time_ms": 11.199,
+      "percent_of_category": 6.09,
+      "percent_of_total": 0.11,
+      "efficiency": {
+        "tflops_achieved": 0.14,
+        "tb_s_achieved": 0.85,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.17,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 6144), (128, 6144), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar')",
+      "args": "(128,6144) bf16<br>(128,6144) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call",
+      "kernel_name": "triton_poi_fused_add_0",
+      "kernel_name_trunc": "triton_poi_fused_add_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_3",
+      "count": 1998,
+      "time_ms": 10.754,
+      "percent_of_category": 5.85,
+      "percent_of_total": 0.1,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 4.97,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 128), (128,), (202752, 64), (128, 2624), (128, 64), (128, 1, 32, 2), (128, 64), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(128,128) bf16<br>(128,) long int<br>(202752,64) bf16<br>(128,2624) bf16<br>(128,64) bf16<br>(128,1,32,2) bf16<br>(128,64) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call",
+      "kernel_name": "triton_poi_fused_3",
+      "kernel_name_trunc": "triton_poi_fused_3",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_slice_view_4",
+      "count": 1998,
+      "time_ms": 10.7,
+      "percent_of_category": 5.82,
+      "percent_of_total": 0.1,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.01,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.08,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 160), (4096, 1), (128, 32), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'Scalar')",
+      "args": "(128,160) bf16<br>(4096,1) fp32<br>(128,32) fp32",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call",
+      "kernel_name": "triton_poi_fused_mul_slice_view_4",
+      "kernel_name_trunc": "triton_poi_fused_mul_slice_view_4",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_silu_slice_0",
+      "count": 2025,
+      "time_ms": 10.502,
+      "percent_of_category": 5.71,
+      "percent_of_total": 0.1,
+      "efficiency": {
+        "tflops_achieved": 0.03,
+        "tb_s_achieved": 0.05,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.62,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 512), (128, 256), (), (), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar', 'Scalar')",
+      "args": "(128,512) bf16<br>(128,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/r3/cr36rifkc5vt55khkv456lb4gle5wumk6kmmoscry4nnp5kg25h3.py(96): call",
+      "kernel_name": "triton_poi_fused_mul_silu_slice_0",
+      "kernel_name_trunc": "triton_poi_fused_mul_silu_slice_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM",
+        "SharedExperts",
+        "DeepseekV2MLP",
+        "SiluAndMul"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call",
+        "vllm::moe_forward_shared",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(152): _moe_forward_shared",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(792): _forward_impl",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(547): _apply_quant_method",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(538): _maybe_apply_shared_experts",
+        "nn.Module: SharedExperts",
+        "vllm/model_executor/layers/fused_moe/runner/shared_experts.py(155): forward",
+        "nn.Module: DeepseekV2MLP",
+        "vllm/model_executor/models/deepseek_v2.py(269): forward",
+        "nn.Module: SiluAndMul",
+        "vllm/model_executor/custom_op.py(135): forward",
+        "vllm/model_executor/layers/activation.py(137): forward_native",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/r3/cr36rifkc5vt55khkv456lb4gle5wumk6kmmoscry4nnp5kg25h3.py(96): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_2",
+      "count": 2025,
+      "time_ms": 10.459,
+      "percent_of_category": 5.69,
+      "percent_of_total": 0.1,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 5.81,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 4096), (128,), (202752, 64), (128, 2048), (128, 32, 128), (128, 8, 256), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(128,4096) bf16<br>(128,) long int<br>(202752,64) bf16<br>(128,2048) bf16<br>(128,32,128) bf16<br>(128,8,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused_2",
+      "kernel_name_trunc": "triton_poi_fused_2",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "count": 300,
+      "time_ms": 4.753,
+      "percent_of_category": 2.58,
+      "percent_of_total": 0.04,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 4.63,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.0,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 128), (8192,), (202752, 64), (8192, 2624), (8192, 64), (8192, 1, 32, 2), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(8192,128) bf16<br>(8192,) long int<br>(202752,64) bf16<br>(8192,2624) bf16<br>(8192,64) bf16<br>(8192,1,32,2) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call",
+      "kernel_name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_2",
+      "count": 75,
+      "time_ms": 4.571,
+      "percent_of_category": 2.49,
+      "percent_of_total": 0.04,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 2.36,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 4096), (4096,), (202752, 64), (4096, 2048), (4096, 32, 128), (4096, 8, 256), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(4096,4096) bf16<br>(4096,) long int<br>(202752,64) bf16<br>(4096,2048) bf16<br>(4096,32,128) bf16<br>(4096,8,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused_2",
+      "kernel_name_trunc": "triton_poi_fused_2",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_add_0",
+      "count": 75,
+      "time_ms": 3.185,
+      "percent_of_category": 1.73,
+      "percent_of_total": 0.03,
+      "efficiency": {
+        "tflops_achieved": 0.59,
+        "tb_s_achieved": 3.56,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.17,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 6144), (4096, 6144), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar')",
+      "args": "(4096,6144) bf16<br>(4096,6144) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call",
+      "kernel_name": "triton_poi_fused_add_0",
+      "kernel_name_trunc": "triton_poi_fused_add_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_silu_slice_0",
+      "count": 300,
+      "time_ms": 2.458,
+      "percent_of_category": 1.34,
+      "percent_of_total": 0.02,
+      "efficiency": {
+        "tflops_achieved": 1.28,
+        "tb_s_achieved": 2.05,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.62,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 512), (8192, 256), (), (), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar', 'Scalar')",
+      "args": "(8192,512) bf16<br>(8192,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/r3/cr36rifkc5vt55khkv456lb4gle5wumk6kmmoscry4nnp5kg25h3.py(96): call",
+      "kernel_name": "triton_poi_fused_mul_silu_slice_0",
+      "kernel_name_trunc": "triton_poi_fused_mul_silu_slice_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM",
+        "SharedExperts",
+        "DeepseekV2MLP",
+        "SiluAndMul"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ah/cahrrja3376b4vjpzp6kzcwat56qspehnidvoiza5rrivjdigfuc.py(1445): call",
+        "vllm::moe_forward_shared",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(152): _moe_forward_shared",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(792): _forward_impl",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(547): _apply_quant_method",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(538): _maybe_apply_shared_experts",
+        "nn.Module: SharedExperts",
+        "vllm/model_executor/layers/fused_moe/runner/shared_experts.py(155): forward",
+        "nn.Module: DeepseekV2MLP",
+        "vllm/model_executor/models/deepseek_v2.py(269): forward",
+        "nn.Module: SiluAndMul",
+        "vllm/model_executor/custom_op.py(135): forward",
+        "vllm/model_executor/layers/activation.py(137): forward_native",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/r3/cr36rifkc5vt55khkv456lb4gle5wumk6kmmoscry4nnp5kg25h3.py(96): call"
+      ]
+    },
+    {
+      "name": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "count": 300,
+      "time_ms": 2.308,
+      "percent_of_category": 1.26,
+      "percent_of_total": 0.02,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.61,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 160), (128,), (128,), (8192, 128), (), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(8192,160) bf16<br>(128,) fp32<br>(128,) fp32<br>(8192,128) bf16",
+      "classification": {
+        "kernel_type": "persistent"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call",
+      "kernel_name": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "kernel_name_trunc": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "count": 78,
+      "time_ms": 1.893,
+      "percent_of_category": 1.03,
+      "percent_of_total": 0.02,
+      "efficiency": {
+        "tflops_achieved": 2.34,
+        "tb_s_achieved": 3.12,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.75,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 8, 512), (4096, 8, 64), (), (4096, 4608), (), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'float', 'c10::Float8_e4m3fnuz', 'Scalar', 'Scalar')",
+      "args": "(4096,8,512) bf16<br>(4096,8,64) bf16<br>() fp32<br>(4096,4608) fp8",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/yj/cyjifma6smm27qh2fyuj57ftcskfkwr6yyanszodvhjajcceewsn.py(115): call",
+      "kernel_name": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM",
+        "_DecodeConcatQuantFP8"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm::unified_mla_attention_with_output",
+        "vllm/model_executor/layers/attention/kv_transfer_utils.py(37): wrapper",
+        "vllm/model_executor/layers/attention/mla_attention.py(1080): unified_mla_attention_with_output",
+        "vllm/model_executor/layers/attention/mla_attention.py(624): forward_impl",
+        "vllm/v1/attention/backends/mla/rocm_aiter_mla_sparse.py(728): forward_mqa",
+        "nn.Module: _DecodeConcatQuantFP8",
+        "vllm/model_executor/custom_op.py(135): forward",
+        "vllm/model_executor/custom_op.py(248): wrapper",
+        "vllm/model_executor/layers/attention/mla_attention.py(1187): forward",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/yj/cyjifma6smm27qh2fyuj57ftcskfkwr6yyanszodvhjajcceewsn.py(115): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_4",
+      "count": 300,
+      "time_ms": 1.835,
+      "percent_of_category": 1.0,
+      "percent_of_total": 0.02,
+      "efficiency": {
+        "tflops_achieved": 0.26,
+        "tb_s_achieved": 0.69,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.38,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 128), (8192, 64), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar')",
+      "args": "(8192,128) bf16<br>(8192,64) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call",
+      "kernel_name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_4",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_slice_view_5",
+      "count": 300,
+      "time_ms": 1.773,
+      "percent_of_category": 0.96,
+      "percent_of_total": 0.02,
+      "efficiency": {
+        "tflops_achieved": 0.04,
+        "tb_s_achieved": 0.53,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.08,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 160), (262144, 1), (8192, 32), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'Scalar')",
+      "args": "(8192,160) bf16<br>(262144,1) fp32<br>(8192,32) fp32",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call",
+      "kernel_name": "triton_poi_fused_mul_slice_view_5",
+      "kernel_name_trunc": "triton_poi_fused_mul_slice_view_5",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_1",
+      "count": 12,
+      "time_ms": 1.487,
+      "percent_of_category": 0.81,
+      "percent_of_total": 0.01,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 2.11,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 4096), (8192,), (202752, 64), (8192, 2048), (8192, 32, 128), (8192, 8, 256), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(8192,4096) bf16<br>(8192,) long int<br>(202752,64) bf16<br>(8192,2048) bf16<br>(8192,32,128) bf16<br>(8192,8,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call",
+      "kernel_name": "triton_poi_fused_1",
+      "kernel_name_trunc": "triton_poi_fused_1",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call"
+      ]
+    },
+    {
+      "name": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "count": 75,
+      "time_ms": 0.483,
+      "percent_of_category": 0.26,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.37,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 160), (128,), (128,), (4096, 128), (), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(4096,160) bf16<br>(128,) fp32<br>(128,) fp32<br>(4096,128) bf16",
+      "classification": {
+        "kernel_type": "persistent"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "kernel_name_trunc": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "count": 81,
+      "time_ms": 0.438,
+      "percent_of_category": 0.24,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.01,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 160), (128,), (128,), (128, 128), (), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(128,160) bf16<br>(128,) fp32<br>(128,) fp32<br>(128,128) bf16",
+      "classification": {
+        "kernel_type": "persistent"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call",
+      "kernel_name": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "kernel_name_trunc": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "count": 78,
+      "time_ms": 0.431,
+      "percent_of_category": 0.23,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.31,
+        "tb_s_achieved": 0.41,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.75,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((124, 8, 512), (124, 8, 64), (), (124, 4608), (), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'float', 'c10::Float8_e4m3fnuz', 'Scalar', 'Scalar')",
+      "args": "(124,8,512) bf16<br>(124,8,64) bf16<br>() fp32<br>(124,4608) fp8",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/yj/cyjifma6smm27qh2fyuj57ftcskfkwr6yyanszodvhjajcceewsn.py(115): call",
+      "kernel_name": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM",
+        "_DecodeConcatQuantFP8"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm::unified_mla_attention_with_output",
+        "vllm/model_executor/layers/attention/kv_transfer_utils.py(37): wrapper",
+        "vllm/model_executor/layers/attention/mla_attention.py(1080): unified_mla_attention_with_output",
+        "vllm/model_executor/layers/attention/mla_attention.py(624): forward_impl",
+        "vllm/v1/attention/backends/mla/rocm_aiter_mla_sparse.py(728): forward_mqa",
+        "nn.Module: _DecodeConcatQuantFP8",
+        "vllm/model_executor/custom_op.py(135): forward",
+        "vllm/model_executor/custom_op.py(248): wrapper",
+        "vllm/model_executor/layers/attention/mla_attention.py(1187): forward",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/yj/cyjifma6smm27qh2fyuj57ftcskfkwr6yyanszodvhjajcceewsn.py(115): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_2",
+      "count": 81,
+      "time_ms": 0.429,
+      "percent_of_category": 0.23,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 5.05,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 128), (128,), (202752, 64), (128, 2624), (128, 64), (128, 1, 32, 2), (128, 64), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(128,128) bf16<br>(128,) long int<br>(202752,64) bf16<br>(128,2624) bf16<br>(128,64) bf16<br>(128,1,32,2) bf16<br>(128,64) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call",
+      "kernel_name": "triton_poi_fused_2",
+      "kernel_name_trunc": "triton_poi_fused_2",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_silu_slice_0",
+      "count": 75,
+      "time_ms": 0.426,
+      "percent_of_category": 0.23,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.93,
+        "tb_s_achieved": 1.48,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.62,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 512), (4096, 256), (), (), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar', 'Scalar')",
+      "args": "(4096,512) bf16<br>(4096,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/r3/cr36rifkc5vt55khkv456lb4gle5wumk6kmmoscry4nnp5kg25h3.py(96): call",
+      "kernel_name": "triton_poi_fused_mul_silu_slice_0",
+      "kernel_name_trunc": "triton_poi_fused_mul_silu_slice_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM",
+        "SharedExperts",
+        "DeepseekV2MLP",
+        "SiluAndMul"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call",
+        "vllm::moe_forward_shared",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(152): _moe_forward_shared",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(792): _forward_impl",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(547): _apply_quant_method",
+        "vllm/model_executor/layers/fused_moe/runner/moe_runner.py(538): _maybe_apply_shared_experts",
+        "nn.Module: SharedExperts",
+        "vllm/model_executor/layers/fused_moe/runner/shared_experts.py(155): forward",
+        "nn.Module: DeepseekV2MLP",
+        "vllm/model_executor/models/deepseek_v2.py(269): forward",
+        "nn.Module: SiluAndMul",
+        "vllm/model_executor/custom_op.py(135): forward",
+        "vllm/model_executor/layers/activation.py(137): forward_native",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/r3/cr36rifkc5vt55khkv456lb4gle5wumk6kmmoscry4nnp5kg25h3.py(96): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_slice_view_3",
+      "count": 81,
+      "time_ms": 0.423,
+      "percent_of_category": 0.23,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.01,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.08,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 160), (4096, 1), (128, 32), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'Scalar')",
+      "args": "(128,160) bf16<br>(4096,1) fp32<br>(128,32) fp32",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call",
+      "kernel_name": "triton_poi_fused_mul_slice_view_3",
+      "kernel_name_trunc": "triton_poi_fused_mul_slice_view_3",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_slice_view_4",
+      "count": 74,
+      "time_ms": 0.417,
+      "percent_of_category": 0.23,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.02,
+        "tb_s_achieved": 0.28,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.08,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 160), (131072, 1), (4096, 32), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'Scalar')",
+      "args": "(4096,160) bf16<br>(131072,1) fp32<br>(4096,32) fp32",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call",
+      "kernel_name": "triton_poi_fused_mul_slice_view_4",
+      "kernel_name_trunc": "triton_poi_fused_mul_slice_view_4",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_3",
+      "count": 74,
+      "time_ms": 0.403,
+      "percent_of_category": 0.22,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 9.32,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 128), (4096,), (202752, 64), (4096, 2624), (4096, 64), (4096, 1, 32, 2), (4096, 64), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(4096,128) bf16<br>(4096,) long int<br>(202752,64) bf16<br>(4096,2624) bf16<br>(4096,64) bf16<br>(4096,1,32,2) bf16<br>(4096,64) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call",
+      "kernel_name": "triton_poi_fused_3",
+      "kernel_name_trunc": "triton_poi_fused_3",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/tb/ctb45sdhxeqk3s7uosu5oon4zlhxge7yqi2dbn4sbskap7nouiub.py(1194): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_1",
+      "count": 81,
+      "time_ms": 0.392,
+      "percent_of_category": 0.21,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 6.13,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 4096), (128,), (202752, 64), (128, 2048), (128, 32, 128), (128, 8, 256), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(128,4096) bf16<br>(128,) long int<br>(202752,64) bf16<br>(128,2048) bf16<br>(128,32,128) bf16<br>(128,8,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call",
+      "kernel_name": "triton_poi_fused_1",
+      "kernel_name_trunc": "triton_poi_fused_1",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0",
+      "count": 4,
+      "time_ms": 0.195,
+      "percent_of_category": 0.11,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 4.2,
+        "tb_s_achieved": 7.06,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.59,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192,), (19360, 6144), (8192, 6144), ())",
+      "Input type": "('int', 'c10::BFloat16', 'c10::BFloat16', 'Scalar')",
+      "args": "(8192,) int<br>(19360,6144) bf16<br>(8192,6144) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call",
+      "kernel_name": "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0",
+      "kernel_name_trunc": "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_mas...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ed/cedvbdlxosq4azu47uauvsp7docysub6eeveecuce2ekwhpguj3j.py(1552): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_1",
+      "count": 3,
+      "time_ms": 0.188,
+      "percent_of_category": 0.1,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 2.29,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 4096), (4096,), (202752, 64), (4096, 2048), (4096, 32, 128), (4096, 8, 256), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(4096,4096) bf16<br>(4096,) long int<br>(202752,64) bf16<br>(4096,2048) bf16<br>(4096,32,128) bf16<br>(4096,8,256) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call",
+      "kernel_name": "triton_poi_fused_1",
+      "kernel_name_trunc": "triton_poi_fused_1",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "count": 27,
+      "time_ms": 0.187,
+      "percent_of_category": 0.1,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 3.86,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.0,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 128), (128,), (202752, 64), (128, 2624), (128, 64), (128, 1, 32, 2), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(128,128) bf16<br>(128,) long int<br>(202752,64) bf16<br>(128,2624) bf16<br>(128,64) bf16<br>(128,1,32,2) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_2",
+      "count": 12,
+      "time_ms": 0.164,
+      "percent_of_category": 0.09,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 5.37,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.0,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 128), (8192,), (202752, 64), (8192, 2624), (8192, 64), (8192, 1, 32, 2), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(8192,128) bf16<br>(8192,) long int<br>(202752,64) bf16<br>(8192,2624) bf16<br>(8192,64) bf16<br>(8192,1,32,2) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call",
+      "kernel_name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_2",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_slice_view_5",
+      "count": 27,
+      "time_ms": 0.148,
+      "percent_of_category": 0.08,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.01,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.08,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 160), (4096, 1), (128, 32), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'Scalar')",
+      "args": "(128,160) bf16<br>(4096,1) fp32<br>(128,32) fp32",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused_mul_slice_view_5",
+      "kernel_name_trunc": "triton_poi_fused_mul_slice_view_5",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_4",
+      "count": 27,
+      "time_ms": 0.147,
+      "percent_of_category": 0.08,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.01,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.38,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128, 128), (128, 64), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar')",
+      "args": "(128,128) bf16<br>(128,64) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_4",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_0",
+      "count": 27,
+      "time_ms": 0.137,
+      "percent_of_category": 0.07,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 47.51,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((128,), (19360, 6144), (128, 6144), (128, 6144), (), ())",
+      "Input type": "('int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(128,) int<br>(19360,6144) bf16<br>(128,6144) bf16<br>(128,6144) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused_0",
+      "kernel_name_trunc": "triton_poi_fused_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "count": 12,
+      "time_ms": 0.082,
+      "percent_of_category": 0.04,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.69,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 160), (128,), (128,), (8192, 128), (), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(8192,160) bf16<br>(128,) fp32<br>(128,) fp32<br>(8192,128) bf16",
+      "classification": {
+        "kernel_type": "persistent"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call",
+      "kernel_name": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "kernel_name_trunc": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_slice_view_4",
+      "count": 12,
+      "time_ms": 0.068,
+      "percent_of_category": 0.04,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.05,
+        "tb_s_achieved": 0.55,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.08,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 160), (262144, 1), (8192, 32), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'Scalar')",
+      "args": "(8192,160) bf16<br>(262144,1) fp32<br>(8192,32) fp32",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call",
+      "kernel_name": "triton_poi_fused_mul_slice_view_4",
+      "kernel_name_trunc": "triton_poi_fused_mul_slice_view_4",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "count": 12,
+      "time_ms": 0.065,
+      "percent_of_category": 0.04,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.29,
+        "tb_s_achieved": 0.78,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.38,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((8192, 128), (8192, 64), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar')",
+      "args": "(8192,128) bf16<br>(8192,64) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call",
+      "kernel_name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/mn/cmnhcayq7pg4oxxc2nntu3m7vhpkesdcsc2icl4ezvtujxefzwhq.py(1362): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_0",
+      "count": 1,
+      "time_ms": 0.052,
+      "percent_of_category": 0.03,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 6.53,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096,), (19360, 6144), (4096, 6144), (4096, 6144), (), ())",
+      "Input type": "('int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(4096,) int<br>(19360,6144) bf16<br>(4096,6144) bf16<br>(4096,6144) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused_0",
+      "kernel_name_trunc": "triton_poi_fused_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "count": 3,
+      "time_ms": 0.018,
+      "percent_of_category": 0.01,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 0.39,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 160), (128,), (128,), (4096, 128), (), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(4096,160) bf16<br>(128,) fp32<br>(128,) fp32<br>(4096,128) bf16",
+      "classification": {
+        "kernel_type": "persistent"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call",
+      "kernel_name": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "kernel_name_trunc": "triton_per_fused__to_copy_native_layer_norm_slice_0",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_2",
+      "count": 3,
+      "time_ms": 0.017,
+      "percent_of_category": 0.01,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 9.02,
+        "efficiency_percent": null,
+        "bound_type": null,
+        "flops_per_byte": null,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 128), (4096,), (202752, 64), (4096, 2624), (4096, 64), (4096, 1, 32, 2), (4096, 64), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(4096,128) bf16<br>(4096,) long int<br>(202752,64) bf16<br>(4096,2624) bf16<br>(4096,64) bf16<br>(4096,1,32,2) bf16<br>(4096,64) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call",
+      "kernel_name": "triton_poi_fused_2",
+      "kernel_name_trunc": "triton_poi_fused_2",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_slice_view_3",
+      "count": 3,
+      "time_ms": 0.017,
+      "percent_of_category": 0.01,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.02,
+        "tb_s_achieved": 0.29,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.08,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 160), (131072, 1), (4096, 32), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'Scalar')",
+      "args": "(4096,160) bf16<br>(131072,1) fp32<br>(4096,32) fp32",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call",
+      "kernel_name": "triton_poi_fused_mul_slice_view_3",
+      "kernel_name_trunc": "triton_poi_fused_mul_slice_view_3",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/ee/ceexsjao6zuf5l6pl5ji5qalw6w7xp6sz44gde2aiogyscovrm7s.py(1111): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "count": 1,
+      "time_ms": 0.008,
+      "percent_of_category": 0.0,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.0,
+        "tb_s_achieved": 6.47,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.0,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 128), (4096,), (202752, 64), (4096, 2624), (4096, 64), (4096, 1, 32, 2), (), ())",
+      "Input type": "('c10::BFloat16', 'long int', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'c10::BFloat16', 'Scalar', 'Scalar')",
+      "args": "(4096,128) bf16<br>(4096,) long int<br>(202752,64) bf16<br>(4096,2624) bf16<br>(4096,64) bf16<br>(4096,1,32,2) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused_mul_slice_view_5",
+      "count": 1,
+      "time_ms": 0.005,
+      "percent_of_category": 0.0,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.02,
+        "tb_s_achieved": 0.29,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.08,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 160), (131072, 1), (4096, 32), ())",
+      "Input type": "('c10::BFloat16', 'float', 'float', 'Scalar')",
+      "args": "(4096,160) bf16<br>(131072,1) fp32<br>(4096,32) fp32",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused_mul_slice_view_5",
+      "kernel_name_trunc": "triton_poi_fused_mul_slice_view_5",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    },
+    {
+      "name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_4",
+      "count": 1,
+      "time_ms": 0.005,
+      "percent_of_category": 0.0,
+      "percent_of_total": 0.0,
+      "efficiency": {
+        "tflops_achieved": 0.15,
+        "tb_s_achieved": 0.4,
+        "efficiency_percent": null,
+        "bound_type": "memory",
+        "flops_per_byte": 0.38,
+        "compute_spec": "vector_bfloat16",
+        "resolved_peak_maf": 708,
+        "resolved_peak_hbm_bw": 5.3,
+        "warning": null,
+        "is_anomaly": false
+      },
+      "Input Dims": "((4096, 128), (4096, 64), ())",
+      "Input type": "('c10::BFloat16', 'c10::BFloat16', 'Scalar')",
+      "args": "(4096,128) bf16<br>(4096,64) bf16",
+      "classification": {
+        "kernel_type": "pointwise"
+      },
+      "library": "Triton",
+      "launcher_path": "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call",
+      "kernel_name": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_4",
+      "kernel_name_trunc": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_...",
+      "module_chain": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "call_chain": [
+        "vllm/v1/worker/gpu_model_runner.py(4069): execute_model",
+        "vllm/v1/worker/gpu_model_runner.py(3783): _model_forward",
+        "nn.Module: GlmMoeDsaForCausalLM",
+        "vllm/model_executor/models/deepseek_v2.py(1870): forward",
+        "vllm/compilation/decorators.py(502): __call__",
+        "torch/_dynamo/aot_compile.py(218): __call__",
+        "vllm/model_executor/models/deepseek_v2.py(1407): forward",
+        "vllm/compilation/caching.py(216): __call__",
+        "vllm/compilation/cuda_graph.py(233): __call__",
+        "vllm/compilation/piecewise_backend.py(358): __call__",
+        "/opt/vllm_cache/vllm/torch_compile_cache/torch_aot_compile/12152e121183c484846329fce585d26a6016f814d69e117f2b5bfdeb9e36c690/inductor_cache/22/c22anf2k3ds7gy34db4bbmrklazxifbwivdafia4rssgvlolhdww.py(1587): call"
+      ]
+    }
+  ],
+  "category_specific": {
+    "pointwise_count": 39,
+    "reduction_count": 0,
+    "persistent_count": 6,
+    "other_count": 0,
+    "peak_maf_tflops": 708,
+    "peak_hbm_bw_tbs": 5.3
+  },
+  "impact_estimates": [
+    {
+      "operation": "triton_poi_fused_2",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.11,
+      "impact_score_low": 0.06,
+      "impact_score_high": 0.17,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 39.882,
+      "percent_of_total": 0.38
+    },
+    {
+      "operation": "triton_poi_fused_add_0",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.07,
+      "impact_score_low": 0.03,
+      "impact_score_high": 0.1,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 23.684,
+      "percent_of_total": 0.22
+    },
+    {
+      "operation": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.04,
+      "impact_score_low": 0.02,
+      "impact_score_high": 0.06,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 14.359,
+      "percent_of_total": 0.14
+    },
+    {
+      "operation": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.03,
+      "impact_score_low": 0.02,
+      "impact_score_high": 0.05,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 11.48,
+      "percent_of_total": 0.11
+    },
+    {
+      "operation": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.03,
+      "impact_score_low": 0.02,
+      "impact_score_high": 0.05,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 11.245,
+      "percent_of_total": 0.11
+    },
+    {
+      "operation": "triton_poi_fused_add_0",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.03,
+      "impact_score_low": 0.02,
+      "impact_score_high": 0.05,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 11.199,
+      "percent_of_total": 0.11
+    },
+    {
+      "operation": "triton_poi_fused_3",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.03,
+      "impact_score_low": 0.01,
+      "impact_score_high": 0.05,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 10.754,
+      "percent_of_total": 0.1
+    },
+    {
+      "operation": "triton_poi_fused_mul_slice_view_4",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.03,
+      "impact_score_low": 0.01,
+      "impact_score_high": 0.05,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 10.7,
+      "percent_of_total": 0.1
+    },
+    {
+      "operation": "triton_poi_fused_mul_silu_slice_0",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.03,
+      "impact_score_low": 0.01,
+      "impact_score_high": 0.05,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 10.502,
+      "percent_of_total": 0.1
+    },
+    {
+      "operation": "triton_poi_fused_2",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.03,
+      "impact_score_low": 0.01,
+      "impact_score_high": 0.05,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 10.459,
+      "percent_of_total": 0.1
+    },
+    {
+      "operation": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_3",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.01,
+      "impact_score_low": 0.01,
+      "impact_score_high": 0.02,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 4.753,
+      "percent_of_total": 0.04
+    },
+    {
+      "operation": "triton_poi_fused_2",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.01,
+      "impact_score_low": 0.01,
+      "impact_score_high": 0.02,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 4.571,
+      "percent_of_total": 0.04
+    },
+    {
+      "operation": "triton_poi_fused_add_0",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.01,
+      "impact_score_low": 0.0,
+      "impact_score_high": 0.01,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 3.185,
+      "percent_of_total": 0.03
+    },
+    {
+      "operation": "triton_poi_fused_mul_silu_slice_0",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.01,
+      "impact_score_low": 0.0,
+      "impact_score_high": 0.01,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 2.458,
+      "percent_of_total": 0.02
+    },
+    {
+      "operation": "triton_per_fused__to_copy_native_layer_norm_slice_1",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.01,
+      "impact_score_low": 0.0,
+      "impact_score_high": 0.01,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 2.308,
+      "percent_of_total": 0.02
+    },
+    {
+      "operation": "triton_poi_fused__to_copy_cat_clamp_mul_reciprocal_view_0",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.01,
+      "impact_score_low": 0.0,
+      "impact_score_high": 0.01,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 1.893,
+      "percent_of_total": 0.02
+    },
+    {
+      "operation": "triton_poi_fused__to_copy_add_cat_index_select_mul_native_layer_norm_slice_split_split_with_sizes_stack_sub_unsqueeze_view_4",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.01,
+      "impact_score_low": 0.0,
+      "impact_score_high": 0.01,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 1.835,
+      "percent_of_total": 0.02
+    },
+    {
+      "operation": "triton_poi_fused_mul_slice_view_5",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.01,
+      "impact_score_low": 0.0,
+      "impact_score_high": 0.01,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 1.773,
+      "percent_of_total": 0.02
+    },
+    {
+      "operation": "triton_poi_fused_1",
+      "category": "triton",
+      "type": "unmodeled_significant",
+      "estimate_method": "heuristic",
+      "impact_score": 0.0,
+      "impact_score_low": 0.0,
+      "impact_score_high": 0.0,
+      "efficiency_pct": null,
+      "bound_type": null,
+      "library": "Triton",
+      "time_ms": 1.487,
+      "percent_of_total": 0.01
+    }
+  ],
+  "category_findings": []
+}

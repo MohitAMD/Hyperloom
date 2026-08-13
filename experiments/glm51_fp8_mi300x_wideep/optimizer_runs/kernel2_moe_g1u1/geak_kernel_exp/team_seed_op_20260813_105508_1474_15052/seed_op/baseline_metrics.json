@@ -1,0 +1,62 @@
+{
+  "round": 0,
+  "phase": "baseline",
+  "bottleneck": "overhead",
+  "secondary_bottleneck": "latency-C2 (issue wait) inside the Triton GEMM",
+  "profiler_used": "rocprofv3",
+  "profiler_notes": "rocprof-compute/omniperf not installed on this box; no SoL section. rocprofv3 --kernel-trace --stats ran clean (no PROFILER FAILED block) and rocprofv3 --pmc counter collection also worked, so SoL-equivalent numbers were hand-computed from SQ_*/GRBM_GUI_ACTIVE/TCC_EA0_RDREQ_sum.",
+  "device": "MI300X-class / gfx942 / CDNA3, 304 CU, 8 XCD, 64KB LDS/CU, ~5.3 TB/s HBM nameplate",
+  "dispatch_count": 590,
+  "dispatch_breakdown_case0": {
+    "total": 590,
+    "__amd_rocclr_copyBuffer": 469,
+    "unrolled_elementwise_FillFunctor": 51,
+    "vectorized_elementwise_4": 33,
+    "vectorized_elementwise_2": 26,
+    "reduce_kernel": 3,
+    "warpMergeSortKVInPlace": 1,
+    "_moe_g1u1_fp8_kernel": 1
+  },
+  "key_metrics": {
+    "valu_pct": 23.72,
+    "mfma_busy_pct": 2.35,
+    "vmem_pct": null,
+    "lds_pct": 0.0,
+    "hbm_gbps": 434.3,
+    "hbm_pct_of_peak": 8.2,
+    "l2_hit_pct": null,
+    "vgpr": 176,
+    "arch_vgpr": 40,
+    "accum_vgpr": 136,
+    "sgpr": 48,
+    "scratch_bytes": 0,
+    "lds_bytes": 0,
+    "waves_per_simd": 2,
+    "occupancy_pct": 25.0,
+    "workgroups": 3296,
+    "cu_count": 304,
+    "wave_active_over_active_plus_wait_pct": 61.5,
+    "valu_insts_per_mfma_inst": 161.2,
+    "sq_waves": 13184,
+    "mfma_variant": "v_mfma_f32_16x16x16_f16 (FP16, not FP8)"
+  },
+  "per_call_split_ms": {
+    "case0_T16":  {"full": 10.013, "moe_align_block_size": 6.936, "triton_gemm": 2.995},
+    "case1_T32":  {"full": 13.934, "moe_align_block_size": 8.841, "triton_gemm": 4.836},
+    "case2_T64":  {"full": 17.027, "moe_align_block_size": 10.217, "triton_gemm": 6.370},
+    "case3_T128": {"full": 18.941, "moe_align_block_size": 11.146, "triton_gemm": 7.217}
+  },
+  "padding_waste": {
+    "case0": {"valid_rows": 128, "EM": 1648, "row_fill_pct": 7.8, "flop_waste_x": 12.9},
+    "case1": {"valid_rows": 256, "EM": 2704, "row_fill_pct": 9.5, "flop_waste_x": 10.6},
+    "case2": {"valid_rows": 512, "EM": 3504, "row_fill_pct": 14.6, "flop_waste_x": 6.8},
+    "case3": {"valid_rows": 1024, "EM": 4000, "row_fill_pct": 25.6, "flop_waste_x": 3.9}
+  },
+  "top_kernels": [
+    {"name": "_moe_g1u1_fp8_kernel", "pct_of_total": 34.87, "calls": 4, "avg_us": 5645.7},
+    {"name": "__amd_rocclr_copyBuffer (.item() D2H syncs from moe_align_block_size)", "pct_of_total": 10.19, "calls": 2534, "avg_us": 2.6},
+    {"name": "at::native::unrolled/vectorized_elementwise_kernel<FillFunctor> (align scatter)", "pct_of_total": 21.5, "calls": 110, "avg_us": 14.7}
+  ],
+  "baseline_ms": {"case0": 10.3734, "case1": 14.3788, "case2": 17.6388, "case3": 19.4824, "geomean": 15.0466},
+  "summary_path": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/kernel2_moe_g1u1/geak_kernel_exp/team_seed_op_20260813_105508_1474_15052/seed_op/profiling_summary.md"
+}

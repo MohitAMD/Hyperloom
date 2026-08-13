@@ -1,0 +1,158 @@
+{
+ "bottleneck": "compute",
+ "profiler_used": "rocprofv3",
+ "device": "MI300X-class / gfx942 / CDNA3, 304 CU, 192 GB HBM, ~5.3 TB/s peak (rocm-smi GFX Version gfx942, Card Model 0x74a1, SKU M3000108)",
+ "dispatch_count": 1,
+ "key_metrics": {
+  "valu_pct": -1,
+  "vmem_pct": -1,
+  "lds_pct": -1,
+  "l2_hit_pct": -1,
+  "hbm_gbps": 204,
+  "hbm_pct_of_peak": 3.8,
+  "vgpr": 20,
+  "accum_vgpr": 132,
+  "total_vgpr": 152,
+  "sgpr": 112,
+  "scratch_bytes": 0,
+  "lds_shared_bytes": 16896,
+  "waves_per_simd_ceiling": 3,
+  "occupancy_pct": 37.5,
+  "workgroup_size": 256,
+  "num_warps": 4,
+  "block_kv": 128,
+  "num_stages": 2,
+  "matrix_instr_nonkdim": 16,
+  "waves_per_eu": 3,
+  "ctas_min": 2048,
+  "ctas_max": 8192,
+  "cu_count": 304,
+  "achieved_tflops_max": 657.0,
+  "pct_fp8_peak": 25.3,
+  "inner_loop_instrs": 605,
+  "inner_loop_mfma_instrs": 64,
+  "mfma_pct_of_loop_instrs": 10.6,
+  "mfma_op": "v_mfma_f32_16x16x32_fp8_fp8",
+  "head_reduction_instrs_in_loop": 128,
+  "head_reduction_pct_of_loop": 21.2,
+  "post_dot_elementwise_instrs_in_loop": 128,
+  "scrub_instrs_in_loop": 0,
+  "geomean_ms": 0.7014,
+  "geomean_speedup_vs_baseline": 7.8878,
+  "per_case_ms": {
+   "0_M2048": 0.1819,
+   "1_M4096": 0.5023,
+   "2_M8000": 1.5927,
+   "3_M8192": 1.663
+  },
+  "per_case_speedup": {
+   "0_M2048": 5.83,
+   "1_M4096": 7.896,
+   "2_M8000": 9.251,
+   "3_M8192": 9.09
+  },
+  "arith_sum_ms": 3.94,
+  "kernel_us_by_case": {
+   "0_M2048": 138.0,
+   "1_M4096": 502.1,
+   "2_M8000": 1933.1,
+   "3_M8192": 1673.6
+  },
+  "fill_us_by_case": {
+   "0_M2048": 0.0,
+   "1_M4096": 0.0,
+   "2_M8000": 0.0,
+   "3_M8192": 0.0
+  },
+  "host_clamp_us_by_case": {
+   "0_M2048": 4.61,
+   "1_M4096": 3.73,
+   "2_M8000": 6.09,
+   "3_M8192": 6.5
+  },
+  "ns_per_row": {
+   "0_M2048": 67.4,
+   "1_M4096": 122.6,
+   "2_M8000": 241.6,
+   "3_M8192": 204.3
+  },
+  "correctness": "ALL CORRECTNESS CHECKS PASSED, err_ratio=0.0000, cos_diff=3.45e-09..3.55e-09 on all 4 cases",
+  "profiler_note": "rocprof-compute/omniperf still absent; rocprofv3 ran clean (no PROFILER FAILED block) but emits no SoL/cache/wavefront sections. valu/vmem/lds/l2 = -1 means UNMEASURED, not zero. HBM computed by hand (q+k+scales+w+fp32 logits)/kernel_time; TFLOPS = 2*M*N*H*D/kernel_time; instruction mix from the .amdgcn of the actually-launched config (BLOCK_KV=128/ns=2/nonkdim=16/wpe=3, kernel.metadata.shared=16896 B).",
+  "bottleneck_detail": "Still compute-bound, third distinct critical path. The K 0x80 scrub is GONE from the ISA (v_max_i16_sdwa 0, total sdwa 194->2 in the whole module, 2 in the main loop), inner loop 884 -> 605 instrs, MFMA share 7.2% -> 10.6%. What is left is two roughly equal VALU blocks around a native fp8 MFMA: (a) 128 instrs (21.2%) of cross-lane head reduction - 96 v_mov_b32_dpp + 32 v_pk_add_f32 for tl.sum over NUM_HEADS=64; (b) 128 instrs (21.2%) of per-element post-dot math - 64 v_mul_f32 (kv_scale) + 64 v_max_f32 (relu), plus 24 v_pk_fma_f32 / 8 v_pk_mul_f32 for the w_block fold. 106 v_mov_b32 of register shuffling sit on top.",
+  "latency_subcase": "N/A - not latency-bound, re-verified after the round-2 change as the role requires. waves_per_eu 2/3/4 = 0.5275/0.5048/0.5131 ms and num_warps 4/8 = 0.5054/0.8580 ms at M=4096: more resident waves are still SLOWER, the anti-signature of issue-wait C2. VGPR footprint dropped 168 -> 152 (arch 36 -> 20, accum unchanged 132) but that is not enough to cross a waves/SIMD boundary (floor(512/152)=3, same 37.5%), so occupancy is unchanged and irrelevant.",
+  "ab_probes_ms": {
+   "M4096_wpe_2": 0.5275,
+   "M4096_wpe_3_current": 0.5048,
+   "M4096_wpe_4": 0.5131,
+   "M4096_num_warps_4": 0.5054,
+   "M4096_num_warps_8": 0.858,
+   "probe_M4096_full": 0.4328,
+   "probe_M4096_no_post_dot_elementwise_INVALID": 0.371,
+   "probe_M4096_no_head_sum_INVALID_DCEs_MFMA": 0.2617,
+   "probe_M4096_mfma_only_INVALID_DCEs_MFMA": 0.2316,
+   "probe_M4096_scale_hoisted_past_relu_VALID_BUT_SLOWER": 0.4374
+  },
+  "ns_per_melem_out": {
+   "0_M2048": 32.9,
+   "1_M4096": 29.9,
+   "2_M8000": 30.2,
+   "3_M8192": 24.9
+  }
+ },
+ "top_kernels": [
+  {
+   "name": "_fp8_mqa_logits_kernel",
+   "pct_of_total": 66.45,
+   "calls": 4,
+   "avg_us": 1061.7,
+   "note": "the only timed kernel; exactly 1 dispatch per call. 94.07% at baseline, 68.14% at round 1, 66.45% now - the share keeps falling only because the kernel keeps shrinking (4247 us total vs 4899 us at r1), not because new work appeared."
+  },
+  {
+   "name": "at::native::vectorized_elementwise_kernel<MulFunctor<float>>",
+   "pct_of_total": 8.62,
+   "calls": 12,
+   "note": "setup_inputs, outside timed region"
+  },
+  {
+   "name": "at::native::distribution_elementwise_grid_stride_kernel<normal>",
+   "pct_of_total": 6.54,
+   "calls": 12,
+   "note": "setup_inputs, outside timed region"
+  },
+  {
+   "name": "at::native::vectorized_elementwise_kernel<clamp>",
+   "pct_of_total": 6.25,
+   "calls": 8,
+   "note": "6 of 8 are setup_inputs; the 4 SMALL ones (4.61/3.73/6.09/6.50 us, grid = N*D/4) are the NEW host-side K scrub INSIDE the timed region - 0.4-1.2% of end-to-end, and it bought 1.19x"
+  },
+  {
+   "name": "at::native::elementwise_kernel_manual_unroll<direct_copy>",
+   "pct_of_total": 6.22,
+   "calls": 8,
+   "note": "setup_inputs, outside timed region"
+  },
+  {
+   "name": "at::native::vectorized_elementwise_kernel<float8_copy_kernel_cuda>",
+   "pct_of_total": 4.13,
+   "calls": 8,
+   "note": "setup_inputs, outside timed region"
+  },
+  {
+   "name": "at::native::vectorized_elementwise_kernel<FillFunctor<float>>",
+   "pct_of_total": 0.49,
+   "calls": 8,
+   "avg_us": 3.9,
+   "note": "RETIRED from the timed region. Was 4 calls x 34.3 us avg INSIDE the timed path at round 1; the 8 remaining calls are 256-thread setup_inputs fills of 1.6-5.7 us each, outside it. The -inf prefill is now a kernel-side per-row epilogue."
+  }
+ ],
+ "top_opportunities": [
+  "M=8000 TAIL/QUANTIZATION IS THE NEW #1 AND IT IS BRAND NEW THIS ROUND. M=8192 is 4.7% MORE work than M=8000 yet its kernel is 13% FASTER (1673.6 us vs 1933.1 us). Per output element: 24.9 ns/Melem at 8192 vs 30.2 at 8000, i.e. the non-power-of-two case runs 21% below its own sibling's efficiency, and 657 vs 542 TFLOPS. Two compounding causes, both addressable in the launcher/kernel and neither previously visible (at baseline every case was buried under the software upconvert): (a) N=8000 = 62.5 x BLOCK_KV=128, so every one of the 8000 programs falls out of the fast unmasked loop into the masked tail block for its last half-tile - the tail is a full duplicate of the loop body (605 instrs) executed for 50% useful lanes; (b) grid quantization, 8000 CTAs / 304 CU = 26.3 waves, so the last wave is 32% empty, while 8192/304 = 26.9. Case 2 is the heaviest case and holds the WORST per-case speedup among the large shapes' efficiency, so this is worth ~1.2x on case 2 alone and ~1.05x on the geomean. Concrete probes, in order of cheapness: pad the KV extent handling so the masked tail only covers the true remainder rather than re-running a full BLOCK_KV block; or select BLOCK_KV=100/125/64 when seq_len_kv % 128 != 0 (NOTE: this is NOT the exhausted BLOCK_KV sweep - that sweep was run at M=4096, a power of two where the tail never fires; a divisibility-conditional tile choice has never been measured); or persistent-CTA / grid-stride over rows so the ragged last wave is absorbed. Nothing here touches numerics.",
+  "POST-DOT PER-ELEMENT VALU: 64 v_mul_f32 (kv_scale) + 64 v_max_f32 (relu) = 128 of 605 loop instrs (21.2%), MEASURED CEILING 1.17x (0.4328 -> 0.3710 ms at M=4096 with the MFMA count verified unchanged at 64, so this bound is clean and not a DCE artifact). This is now tied with the head reduction as the largest non-MFMA block and it is the one with a trustworthy number. One reformulation is already SPENT: hoisting the kv_scale multiply past relu and past the head-sum (VALID - kv_scales are drawn from U[0.5,1.0] so strictly positive, and relu(a*s)*w summed over h == s * sum_h(relu(a)*w) exactly) measured 0.4374 vs 0.4328, i.e. a small REGRESSION, because it trades 64 broadcast v_mul_f32 for 1 v_mul on the reduced vector but forces the scale load off the critical path the scheduler had already hidden. Do not re-run that. The untried route is packing: the compiler already emits v_pk_fma_f32/v_pk_mul_f32 for the w_block fold but leaves relu and the scale as 64 SCALAR-per-lane v_max_f32/v_mul_f32 - if the accumulator can be presented as f32x2 pairs the same work becomes 32+32 packed ops, a ~64-instr (10%) cut. Worth one engineer.",
+  "CROSS-LANE HEAD REDUCTION (tl.sum over NUM_HEADS=64): 96 v_mov_b32_dpp + 32 v_pk_add_f32 = 128 instrs, 21.2% of the loop - unchanged in absolute terms since round 1 but its SHARE grew from 14% to 21% because everything around it shrank. WARNING ON THE NUMBERS: my two ablation probes for this (no-head-sum 0.2617, mfma-only 0.2316) are CONTAMINATED - removing the sum let the compiler DCE the MFMA from 64 down to 16 per loop, so those are not valid upper bounds, only proof that the DPP chain and the dot are entangled. The round-1 estimate of ~1.10x still stands as the honest figure. Both cheap rewrites remain CLOSED with evidence (transposing the dot to [BLOCK_KV,NUM_HEADS] regressed 2.4x; tl.max instead of tl.sum was slower). Only route left is folding w_block into the MFMA so the head-sum becomes MFMA accumulation - relu sits between the dot and the sum so it needs real algebra. Rank it BELOW the two items above: same size, worse evidence, higher risk.",
+  "REGISTER SHUFFLING: 106 v_mov_b32_e32 in the 605-instr loop (17.5%) - the single largest opcode by count, larger than the MFMA block itself. These are the compiler moving accumulator/operand registers between the MFMA's AGPR-adjacent allocation (Accum_VGPR=132 vs Arch_VGPR only 20 - a 6.6:1 split) and the VALU that consumes them. Arch VGPRs actually FELL 36 -> 20 this round while accum stayed pinned at 132, so the post-dot VALU chain is being fed almost entirely out of accumulator registers, which is exactly what generates the moves. Speculative and compiler-mediated (no source-level knob names it), but if either of the two VALU items above lands, re-read this count: cutting the consumers should cut the moves with them. Report-only for now; do not assign a whole round.",
+  "TILE / OCCUPANCY AXES: STILL EXHAUSTED AT THE POWER-OF-TWO SHAPES - re-verified this round as the role requires after the source changed. waves_per_eu 2/3/4 = 0.5275/0.5048/0.5131 ms and num_warps 4/8 = 0.5054/0.8580 ms at M=4096: 3 and 4 remain strict interior optima, and more resident waves are still slower, so the kernel is confirmed NOT latency-bound C2 for the third round running. VGPR total fell 168 -> 152 (arch 36 -> 20) but floor(512/152) is still 3 waves/SIMD = 37.5% occupancy, so the register saving bought nothing and there is no register-pressure lever here. The ONE exception to 'do not re-sweep' is the divisibility-conditional BLOCK_KV named in opportunity #1 - that is a different question from the M=4096 sweep and has never been measured.",
+  "CLOSED / RULED OUT WITH EVIDENCE, do not re-open: (a) the K 0x80 scrub - DONE and verifiable in the ISA, v_max_i16_sdwa is 0 and module-wide sdwa fell 194 -> 2, with only 2 sdwa left in the main loop; the host clamp costs 3.7-6.5 us inside the timed region against 138-1933 us of kernel, i.e. 0.4-1.2%, and captured 98% of the predicted headroom. (b) the torch.full(-inf) prefill - RETIRED; FillFunctor no longer appears in the timed region at all (was 4 x 34.3 us avg, now only 8 setup_inputs fills of 1.6-5.7 us outside it), replaced by the per-row OOW_FILL kernel epilogue with no host sync, so it stays HIP-graph-capture safe. (c) memory bandwidth - HBM 168-249 GB/s = 3.2-4.7% of 5.3 TB/s, and it went DOWN not up as the kernel sped up, so bandwidth is not closing in. (d) grid fill - CTAs = M = 2048..8192 vs 304 CU, 6.7-27x oversubscribed (but see the QUANTIZATION half of opportunity #1, which is a different failure mode from underfill). (e) dispatch collapse / HIP-graph - still exactly 1 dispatch of the target kernel per call. (f) spill - Scratch_Size = 0. (g) input_precision='ieee' - a measured no-op with native fp8 operands. (h) host-side fullness test with .item() - proven a net loss (60-67 us sync)."
+ ],
+ "summary_path": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/dsa_indexer/geak_kernel_exp/team_seed_op_20260813_040403_598_4778/seed_op/round_2_shift_analysis.md",
+ "shift_note": "BEFORE (round 1): compute-bound with 884 inner-loop instrs, 64 v_mfma_f32_16x16x32_fp8_fp8 = 7.2% of them, and TWO named VALU taxes - 258 instrs (29%) for the in-loop K 0x80 fnuz scrub and 128 (14%) for the head reduction; a torch.full(-inf) FillFunctor dispatch inside the timed region at 8.7/20.4/55.9/52.0 us; 168 VGPRs; geomean 0.8169 ms = 6.77x. AFTER (round 2): still compute-bound, but on a THIRD distinct critical path. Both round-1 recommendations landed. The scrub is gone from the ISA (v_max_i16_sdwa 0/0, module sdwa 194 -> 2, 2 left in the loop) and the -inf prefill is gone from the timed region (FillFunctor 4x34.3 us -> 0; only setup_inputs fills remain outside). Inner loop 884 -> 605 instrs, MFMA share 7.2% -> 10.6%, arch VGPR 36 -> 20 (total 168 -> 152), 542-657 TFLOPS = 21-25% of fp8 peak. Correctness re-verified independently: ALL PASSED, err_ratio=0.0000, cos_diff 3.45e-09..3.55e-09 on all four cases. Authoritative full-benchmark on a clean copy of the winner with untouched test_harness.py/config.yaml: 0.1819/0.5023/1.5927/1.6630 ms -> geomean 0.7014 ms = 7.888x (per-case 5.83/7.90/9.25/9.09x; arith sum 34.877 -> 3.940 ms). This reproduces the engineer's 7.8765x to within 0.1%. SHIFT: compute(VALU-tax-around-a-native-MFMA) -> compute(two-equal-VALU-blocks) PLUS a newly exposed SHAPE effect. The instruction-mix story is now symmetric: the head reduction (128 instrs, 21.2%) and the post-dot per-element scale+relu (128 instrs, 21.2%) are exactly tied, with 106 v_mov_b32 of accumulator shuffling (17.5%) on top and the MFMA itself only 10.6%. But the more actionable shift is that removing 40% of the per-tile instruction count finally made TAIL AND GRID QUANTIZATION visible above the noise: M=8192 does 4.7% more work than M=8000 in 13% LESS kernel time (1673.6 vs 1933.1 us; 24.9 vs 30.2 ns per output Melem). N=8000 is 62.5 BLOCK_KV tiles, so every program pays a full 605-instr masked tail block for a half-full tile, and 8000 CTAs leaves the last of 26.3 CU-waves a third empty. That penalty was always there; it was 2% of a slow kernel and is 21% of a fast one. The latency sub-case was re-read after the change as required and did NOT flip for the third round: waves_per_eu 2/3/4 = 0.5275/0.5048/0.5131 and num_warps 4/8 = 0.5054/0.8580 at M=4096 - more resident waves are still slower, the anti-signature of issue-wait C2, and the VGPR drop to 152 does not cross a waves/SIMD boundary (still 3, 37.5%). NEXT: (1) the M=8000 tail/quantization gap, worth ~1.2x on the heaviest case and ~1.05x on the geomean, entirely numerics-free, and the only place where a BLOCK_KV question is still OPEN (conditioned on seq_len_kv % 128 != 0 - the exhausted sweep was run at M=4096 where the tail never fires); (2) pack the post-dot relu+scale into v_pk_* form, measured ceiling 1.17x, noting that the scale-hoist-past-relu variant is VALID but measured SLOWER (0.4374 vs 0.4328) and is now closed; (3) the head reduction last - same 21% size but its ablation probes are contaminated by MFMA DCE, so ~1.10x from round 1 is still the only honest bound and every cheap rewrite has already regressed."
+}

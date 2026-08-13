@@ -1,0 +1,94 @@
+{
+  "memcpy_summary": {
+    "total_count": 552,
+    "total_time_us": 17688.14,
+    "by_direction": {
+      "H2D": {
+        "count": 78,
+        "total_time_us": 12473.68,
+        "avg_time_us": 159.92,
+        "max_time_us": 396.21,
+        "total_bytes": 654931128,
+        "avg_bytes": 8396552.92
+      },
+      "D2D": {
+        "count": 474,
+        "total_time_us": 5214.46,
+        "avg_time_us": 11.0,
+        "max_time_us": 27.51,
+        "total_bytes": 7902668976,
+        "avg_bytes": 16672297.42
+      }
+    }
+  },
+  "nccl_summary": {
+    "total_count": 688,
+    "total_time_us": 548749.21,
+    "avg_time_us": 797.6,
+    "max_time_us": 10920.87,
+    "top_ops": [
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 10920.87,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1725.42,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1321.04,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1273.52,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1204.03,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1199.42,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1196.85,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1192.36,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1191.52,
+        "stream": 4
+      },
+      {
+        "name": "ncclDevKernel_Generic_2(ncclDevKernelArgsStorage<4096ul>)",
+        "duration_us": 1171.75,
+        "stream": 4
+      }
+    ]
+  },
+  "overlap_analysis": {
+    "total_time_us": 10591741.07,
+    "computation_time_us": 9996854.18,
+    "total_comm_time_us": 548749.21,
+    "exposed_comm_time_us": 548749.17,
+    "total_memcpy_time_us": 17688.14,
+    "exposed_memcpy_time_us": 17688.1,
+    "comm_overlap_ratio": 0.0,
+    "memcpy_overlap_ratio": 0.0,
+    "comm_percent_of_total": 5.18,
+    "memcpy_percent_of_total": 0.17
+  }
+}

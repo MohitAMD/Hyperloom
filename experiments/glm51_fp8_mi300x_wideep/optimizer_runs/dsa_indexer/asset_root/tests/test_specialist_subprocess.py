@@ -1,0 +1,858 @@
+# SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: MIT
+
+"""SpecialistRunner subprocess + worktree tests.
+
+Pins the production specialist dispatch: per-task git worktree, the
+``claude --print --add-dir ...`` spawn, done.json + patch harvesting, and the
+tool whitelist. Uses a hermetic fake ``claude`` shell script.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import os
+import stat
+import subprocess
+import time
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+from .conftest import init_git_repo
+
+from hyperloom.orchestrator.specialists.runner import (
+    DEFAULT_SPECIALIST_TOOLS,
+    SPECIALIST_TOOL_DENYLIST,
+    SpecialistRunner,
+)
+from hyperloom.orchestrator.specialists.subprocess_ import (
+    SpecialistSubprocessConfig,
+    SpecialistSubprocessDispatcher,
+    _build_specialist_env,
+    _pick_worktree_base,
+    _setup_worktree,
+)
+from hyperloom.orchestrator.loop.sub_agent_runner import RunnerContext
+from hyperloom.orchestrator.state.task_registry import Task
+
+
+def test_build_specialist_env_inherits_provider_secrets_by_default(monkeypatch):
+    monkeypatch.delenv("HYPERLOOM_SPECIALIST_INHERIT_SECRET_ENV", raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "anthropic-api-value")
+    monkeypatch.setenv("ANTHROPIC_CUSTOM_HEADERS", "Ocp-Apim-Subscription-Key: anthropic-api-value")
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "aws-access-key-value")
+    monkeypatch.setenv("GITHUB_TOKEN", "github-token-value")
+    monkeypatch.setenv("KB_SERVICE_TOKEN", "kb-token-value")
+    monkeypatch.setenv("INFERENCE_OPTIMIZER_CURRENT_SESSION_DIR", "/tmp/session")
+    monkeypatch.setenv("LD_PRELOAD", "/tmp/evil.so")
+    monkeypatch.setenv("PATH", "/usr/bin")
+    env = _build_specialist_env()
+    assert env["PATH"] == "/usr/bin"
+    assert env["ANTHROPIC_API_KEY"] == "anthropic-api-value"
+    assert env["ANTHROPIC_CUSTOM_HEADERS"] == "Ocp-Apim-Subscription-Key: anthropic-api-value"
+    assert env["AWS_ACCESS_KEY_ID"] == "aws-access-key-value"
+    assert "GITHUB_TOKEN" not in env
+    assert "KB_SERVICE_TOKEN" not in env
+    assert "INFERENCE_OPTIMIZER_CURRENT_SESSION_DIR" not in env
+    assert "LD_PRELOAD" not in env
+
+
+def test_build_specialist_env_secret_inheritance_can_be_disabled(monkeypatch):
+    monkeypatch.setenv("HYPERLOOM_SPECIALIST_INHERIT_SECRET_ENV", "0")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "anthropic-api-value")
+    monkeypatch.setenv("ANTHROPIC_CUSTOM_HEADERS", "Ocp-Apim-Subscription-Key: anthropic-api-value")
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "aws-access-key-value")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "aws-secret-value")
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+    monkeypatch.setenv("GITHUB_TOKEN", "github-token-value")
+    env = _build_specialist_env()
+    assert "ANTHROPIC_API_KEY" not in env
+    assert "ANTHROPIC_CUSTOM_HEADERS" not in env
+    assert "AWS_ACCESS_KEY_ID" not in env
+    assert "AWS_SECRET_ACCESS_KEY" not in env
+    assert "AWS_REGION" in env
+    assert "GITHUB_TOKEN" not in env
+
+
+def _make_fake_claude(
+    bin_dir: Path,
+    *,
+    behavior: str,
+    payload: dict[str, Any] | None = None,
+) -> Path:
+    """Write a fake ``claude`` executable simulating one of: done_only / done_with_patch / done_with_env / crash."""
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    script_path = bin_dir / "claude"
+    payload_json = json.dumps(
+        payload
+        or {
+            "gap_canonical_id": "gap.test.example",
+            "domain": "serving_specialist",
+            "proposal_set": [
+                {
+                    "name": "fake_variant",
+                    "extra_args": "--fake",
+                    "extra_envs": {},
+                    "reason": "fake",
+                }
+            ],
+            "patches_written": [],
+            "empty": False,
+            "summary": "fake claude subprocess output",
+            "confidence": 0.5,
+        }
+    )
+    body = """#!/usr/bin/env bash
+set -e
+# Parse --add-dir paths (first is worktree, second is workspace).
+ADD_DIRS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --add-dir) ADD_DIRS+=("$2"); shift 2 ;;
+    *) shift ;;
+  esac
+done
+WORKTREE="${ADD_DIRS[0]:-}"
+WORKSPACE="${ADD_DIRS[1]:-}"
+if [[ -n "$WORKTREE" && -f "$WORKTREE/prompt.md" ]]; then
+  WORKSPACE="$WORKTREE"
+fi
+"""
+    if behavior == "done_only":
+        body += f"""
+cat > "$WORKSPACE/specialist_done.json" <<'EOF'
+{payload_json}
+EOF
+exit 0
+"""
+    elif behavior == "done_with_patch":
+        patch_payload = json.dumps(
+            {
+                **(payload or {}),
+                "gap_canonical_id": "gap.test.example",
+                "domain": "serving_specialist",
+                "proposal_set": [
+                    {
+                        "name": "patched_variant",
+                        "extra_args": "",
+                        "extra_envs": {},
+                        "reason": "see patch",
+                    }
+                ],
+                "patches_written": ["patches/001_test.patch"],
+                "empty": False,
+                "summary": "fake patch-authoring specialist",
+                "confidence": 0.7,
+            }
+        )
+        body += f"""
+mkdir -p "$WORKTREE/patches"
+cat > "$WORKTREE/patches/001_test.patch" <<'EOF'
+diff --git a/dummy.txt b/dummy.txt
+new file mode 100644
+--- /dev/null
++++ b/dummy.txt
+@@ -0,0 +1 @@
++pr-a2 patch
+EOF
+cat > "$WORKSPACE/specialist_done.json" <<'EOF'
+{patch_payload}
+EOF
+exit 0
+"""
+    elif behavior == "done_with_env":
+        body += """
+cat > "$WORKSPACE/specialist_done.json" <<EOF
+{
+  "gap_canonical_id": "gap.test.example",
+  "domain": "serving_specialist",
+  "proposal_set": [],
+  "patches_written": [],
+  "empty": true,
+  "summary": "env echo",
+  "confidence": 0.0,
+  "hip_visible": "$HIP_VISIBLE_DEVICES",
+  "cuda_visible": "$CUDA_VISIBLE_DEVICES",
+  "rocr_visible": "$ROCR_VISIBLE_DEVICES"
+}
+EOF
+exit 0
+"""
+    elif behavior == "done_with_llm_env":
+        # Echo the LLM-transport stability env for the dispatcher assertion.
+        body += """
+cat > "$WORKSPACE/specialist_done.json" <<EOF
+{
+  "gap_canonical_id": "gap.test.example",
+  "domain": "serving_specialist",
+  "proposal_set": [],
+  "patches_written": [],
+  "empty": true,
+  "summary": "llm env echo",
+  "confidence": 0.0,
+  "api_timeout_ms": "$API_TIMEOUT_MS",
+  "disable_autoupdater": "$DISABLE_AUTOUPDATER",
+  "disable_nonessential": "$CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"
+}
+EOF
+exit 0
+"""
+    elif behavior == "crash":
+        body += "exit 3\n"
+    elif behavior == "partial_then_crash":
+        # Write only the partial checkpoint, then die before the final done.json.
+        body += f"""
+cat > "$WORKSPACE/specialist_done.partial.json" <<'EOF'
+{payload_json}
+EOF
+exit 3
+"""
+    elif behavior == "hang":
+        # Sleep past any wall budget without writing done.json.
+        body += "sleep 600\n"
+    else:
+        raise ValueError(f"unknown behavior {behavior!r}")
+    script_path.write_text(body, encoding="utf-8")
+    script_path.chmod(script_path.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    return script_path
+
+
+@pytest.fixture
+def fake_framework_repo(tmp_path: Path) -> Path:
+    repo = tmp_path / "framework"
+    init_git_repo(repo)
+    return repo
+
+
+def _make_runner_ctx(task_id: str = "t-spec-1") -> RunnerContext:
+    task = Task(
+        task_id=task_id,
+        kind="specialist",
+        state="queued",
+        params={
+            "domain": "serving_specialist",
+            "gap_canonical_id": "gap.test.example",
+            "max_turns": 2,
+        },
+        idempotency_key=task_id,
+        requires_lanes=tuple(),
+    )
+    return RunnerContext(task=task, lease=None, extra={})
+
+
+def test_runner_requires_exactly_one_dispatch_mode():
+    with pytest.raises(ValueError, match="exactly one"):
+        SpecialistRunner()
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        SpecialistRunner(
+            backend_factory=lambda d: None,
+            subprocess_config=SpecialistSubprocessConfig(),
+        )
+
+
+def test_runner_accepts_subprocess_config_only():
+    runner = SpecialistRunner(
+        subprocess_config=SpecialistSubprocessConfig(),
+    )
+    assert runner.subprocess_dispatcher is not None
+    assert runner.backend_factory is None
+
+
+def test_default_tools_include_write_capabilities():
+    """Edit/Write/MultiEdit are lifted out of the denylist for worktree patch authoring."""
+    for tool in ("Edit", "Write", "MultiEdit"):
+        assert tool in DEFAULT_SPECIALIST_TOOLS
+        assert tool not in SPECIALIST_TOOL_DENYLIST
+
+
+def test_kb_write_tools_remain_denied():
+    """KB lifecycle stays Coordinator-owned (Inv-2 / Inv-6.1)."""
+    for kb_tool in ("mcp__cortex_kb__propose_point",):
+        assert kb_tool in SPECIALIST_TOOL_DENYLIST
+
+
+def test_task_allowed_tools_override_default_patch_tools():
+    runner = SpecialistRunner(subprocess_config=SpecialistSubprocessConfig())
+    tools = runner._resolve_tools(["Read", "Grep", "Glob", "Write"])
+    assert tools == ("Read", "Grep", "Glob", "Write")
+    assert "Edit" not in tools
+    assert "MultiEdit" not in tools
+    assert "Bash" not in tools
+
+
+def test_pick_worktree_base_picks_first_git_root(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    nonrepo = tmp_path / "not-a-repo"
+    nonrepo.mkdir()
+    base = _pick_worktree_base((str(nonrepo), str(fake_framework_repo)))
+    assert base is not None
+    assert base.samefile(fake_framework_repo)
+
+
+def test_pick_worktree_base_returns_none_when_no_repo(tmp_path: Path):
+    nonrepo = tmp_path / "not-a-repo"
+    nonrepo.mkdir()
+    base = _pick_worktree_base((str(nonrepo),))
+    assert base is None
+
+
+def test_setup_worktree_creates_branch_off_base(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    workspace = tmp_path / "workspace"
+    worktree, err = _setup_worktree(
+        fake_framework_repo,
+        workspace / "worktree",
+        "specialist-test1",
+    )
+    assert err == "", err
+    assert worktree is not None
+    assert worktree.is_dir()
+    cp = subprocess.run(
+        ["git", "-C", str(fake_framework_repo), "branch", "--list", "specialist-test1"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "specialist-test1" in cp.stdout
+
+
+@pytest.mark.asyncio
+async def test_subprocess_path_harvests_done_file(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    """The fake ``claude`` writes specialist_done.json; the runner reads it and returns status=succeeded."""
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="done_only")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=30.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-done")
+
+    result = await runner.run(ctx)
+
+    assert result.status == "succeeded"
+    assert result.specialist_done["empty"] is False
+    assert result.specialist_done["domain"] == "serving_specialist"
+    workspace = session_dir / "runs" / "specialist" / "t-spec-done"
+    assert (workspace / "specialist_done.json").exists()
+    assert (workspace / "process.log").exists()
+    assert (workspace / "worktree").is_dir()
+
+
+@pytest.mark.asyncio
+async def test_subprocess_path_injects_allocated_gpu_env(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="done_with_env")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=30.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-gpu")
+    ctx.extra["gpu_ids"] = [2, 3]
+
+    result = await runner.run(ctx)
+
+    assert result.status == "succeeded"
+    assert result.specialist_done["hip_visible"] == "2,3"
+    assert result.specialist_done["cuda_visible"] == "2,3"
+    assert result.specialist_done["rocr_visible"] == "2,3"
+    assert result.specialist_done["allocated_gpu_ids"] == [2, 3]
+
+
+@pytest.mark.asyncio
+async def test_subprocess_path_injects_llm_stability_env(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """The dispatcher injects low-risk claude-code stability flags but does not
+    set API_TIMEOUT_MS by default; liveness is governed by the process.log /
+    heartbeat stale reaper."""
+    # Ensure no inherited values mask the setdefault under test.
+    for var in (
+        "API_TIMEOUT_MS",
+        "DISABLE_AUTOUPDATER",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+    ):
+        monkeypatch.delenv(var, raising=False)
+
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="done_with_llm_env")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=30.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-llmenv")
+
+    result = await runner.run(ctx)
+
+    assert result.status in ("succeeded", "empty_synthesised")
+    assert result.specialist_done["api_timeout_ms"] == ""
+    assert result.specialist_done["disable_autoupdater"] == "1"
+    assert result.specialist_done["disable_nonessential"] == "1"
+
+
+@pytest.mark.asyncio
+async def test_readonly_research_scout_skips_worktree(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="done_only")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=30.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-scout")
+    ctx.task.params.update(
+        {
+            "domain": "research_scout_specialist",
+            "gap_canonical_id": "gap.research_scout.round0",
+            "readonly": True,
+        }
+    )
+    ctx.task.allowed_tools = ["Read", "Grep", "Glob", "Write"]
+
+    result = await runner.run(ctx)
+
+    assert result.status == "succeeded"
+    workspace = session_dir / "runs" / "specialist" / "t-spec-scout"
+    assert (workspace / "specialist_done.json").exists()
+    assert not (workspace / "worktree").exists()
+
+
+@pytest.mark.asyncio
+async def test_subprocess_path_collects_patches(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    """A done file + worktree patch threads the patch path into specialist_done['patches_written']."""
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="done_with_patch")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=30.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-patch")
+
+    result = await runner.run(ctx)
+
+    assert result.status == "succeeded"
+    patches = result.specialist_done["patches_written"]
+    assert isinstance(patches, list) and len(patches) == 1
+    assert patches[0].endswith("001_test.patch")
+    worktree = session_dir / "runs" / "specialist" / "t-spec-patch" / "worktree"
+    assert (worktree / "patches" / "001_test.patch").exists()
+
+
+@pytest.mark.asyncio
+async def test_subprocess_crash_falls_back_to_empty_synthesised(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    """A crash with no done.json synthesises an empty specialist_done and a stale-like status."""
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="crash")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=15.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-crash")
+
+    result = await runner.run(ctx)
+    assert result.status in ("empty_synthesised", "stale")
+    assert result.specialist_done["empty"] is True
+    assert "subprocess" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_subprocess_path_isolates_writes_to_worktree(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    """Worktree patches must NOT appear in the base repo's working tree until ``integrate_patch`` applies them."""
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="done_with_patch")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=30.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-iso")
+
+    result = await runner.run(ctx)
+    assert result.status == "succeeded"
+
+    worktree = session_dir / "runs" / "specialist" / "t-spec-iso" / "worktree"
+    assert (worktree / "patches" / "001_test.patch").exists()
+    assert not (fake_framework_repo / "patches" / "001_test.patch").exists()
+    assert not (fake_framework_repo / "dummy.txt").exists()
+
+
+@pytest.mark.asyncio
+async def test_subprocess_recovers_partial_when_no_final(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    """A specialist that wrote only the partial (then died before the final
+    done.json) surfaces the partial as a non-empty result."""
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="partial_then_crash")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=15.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-partial")
+
+    result = await runner.run(ctx)
+    assert result.status == "succeeded"
+    assert result.specialist_done["empty"] is False
+    assert result.specialist_done.get("_recovered_from_partial") is True
+    assert result.specialist_done["proposal_set"]
+
+
+@pytest.mark.asyncio
+async def test_wall_budget_overrides_legacy_max_seconds(
+    tmp_path: Path,
+    fake_framework_repo: Path,
+):
+    """A small Coordinator-injected ``wall_budget_sec`` must kill a hung
+    specialist well before the legacy ``max_turns × per_turn`` ceiling (here
+    2 × 15 = 30s)."""
+    bin_dir = tmp_path / "bin"
+    fake_claude = _make_fake_claude(bin_dir, behavior="hang")
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    config = SpecialistSubprocessConfig(
+        claude_executable=str(fake_claude),
+        model="",
+        framework_source_roots=(str(fake_framework_repo),),
+        per_turn_max_seconds=15.0,
+        poll_interval_seconds=0.2,
+    )
+    runner = SpecialistRunner(
+        subprocess_config=config,
+        session_dir=session_dir,
+        default_max_turns=2,
+    )
+    ctx = _make_runner_ctx("t-spec-budget")
+    ctx.extra["wall_budget_sec"] = 1.0
+
+    started = time.monotonic()
+    result = await runner.run(ctx)
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 15.0
+    assert result.status in ("stale", "empty_synthesised")
+    assert "timeout" in (result.error or "")
+
+
+class _FakeProc:
+    """Minimal stand-in for ``subprocess.Popen`` for reaper unit tests."""
+
+    def __init__(self) -> None:
+        self.pid = os.getpid()
+        self.returncode: int | None = None
+        self.alive = True
+
+    def poll(self) -> int | None:
+        if self.alive:
+            return None
+        self.returncode = 0
+        return 0
+
+
+@pytest.mark.asyncio
+async def test_reap_loop_process_log_activity_prevents_stale_kill(
+    tmp_path: Path,
+):
+    """A specialist that streams to process.log but never self-writes
+    heartbeat.json must NOT be reaped as stale."""
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    process_log = workspace / "process.log"
+    process_log.write_text("start\n", encoding="utf-8")
+    heartbeat_file = workspace / "heartbeat.json"  # never written
+
+    cfg = SpecialistSubprocessConfig(
+        heartbeat_stale_seconds=1.0,
+        poll_interval_seconds=0.2,
+    )
+    disp = SpecialistSubprocessDispatcher(config=cfg)
+    proc = _FakeProc()
+
+    async def _keep_streaming() -> None:
+        # Touch process.log past the stale threshold, then exit cleanly.
+        for i in range(15):  # ~3s, 3x the stale threshold
+            process_log.write_text(f"line {i}\n", encoding="utf-8")
+            await asyncio.sleep(0.2)
+        proc.alive = False
+
+    writer = asyncio.create_task(_keep_streaming())
+    outcome = await disp._reap_loop(
+        proc=proc,
+        workspace=workspace,
+        done_files=(),
+        heartbeat_file=heartbeat_file,
+        max_seconds=60.0,
+        started=time.monotonic(),
+    )
+    _ = await writer
+
+    assert outcome["stale_heartbeat"] is False, outcome
+    assert outcome["timed_out"] is False, outcome
+    assert outcome["exit_code"] == 0
+
+
+@pytest.mark.asyncio
+async def test_reap_loop_kills_when_no_activity_at_all(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """With neither heartbeat.json nor process.log activity, the reaper
+    still reaps a silent/hung subprocess as stale."""
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    # No process.log, no heartbeat.json — total silence.
+    heartbeat_file = workspace / "heartbeat.json"
+
+    cfg = SpecialistSubprocessConfig(
+        heartbeat_stale_seconds=0.5,
+        poll_interval_seconds=0.2,
+    )
+    disp = SpecialistSubprocessDispatcher(config=cfg)
+    proc = _FakeProc()  # stays alive; only staleness can stop it
+
+    # Stub _kill so the reaper never signals a real process group.
+    killed = {"v": False}
+
+    def _fake_kill(p: Any) -> None:
+        killed["v"] = True
+        p.alive = False
+
+    monkeypatch.setattr(
+        SpecialistSubprocessDispatcher,
+        "_kill",
+        staticmethod(_fake_kill),
+    )
+
+    outcome = await disp._reap_loop(
+        proc=proc,
+        workspace=workspace,
+        done_files=(),
+        heartbeat_file=heartbeat_file,
+        max_seconds=60.0,
+        started=time.monotonic(),
+    )
+    assert outcome["stale_heartbeat"] is True, outcome
+    assert killed["v"] is True
+
+
+# ── P2/T4: needs_gpu specialist runs inside a GpuSpecialistLease actor ────────
+class _FakeGpuSpecialistLease:
+    """Fake GpuSpecialistLease: start() writes done.json + log, then 'exits'."""
+
+    def __init__(self, workspace: Path):
+        self._workspace = workspace
+        self.started: dict[str, Any] | None = None
+        self.env: dict[str, str] | None = None
+        self.alive = True
+        self.stopped = False
+
+    def start_async(self, cmd, *, env=None, cwd=None, log_path=None) -> None:
+        # §3.3 non-blocking start: record + stage the done file, mark the pid
+        # ready so poll_started() returns immediately on the next tick.
+        self.started = {"cmd": cmd, "cwd": cwd, "log_path": log_path}
+        self.env = dict(env or {})
+        Path(log_path).write_text("stream-json log line\n", encoding="utf-8")
+        # Graceful done — the reaper harvests this and exits.
+        (self._workspace / "specialist_done.json").write_text(json.dumps({"proposal_set": []}), encoding="utf-8")
+        self.alive = False
+        self._pid = 9999
+
+    def poll_started(self) -> int | None:
+        return getattr(self, "_pid", None)
+
+    def pending_seconds(self) -> float:
+        return 0.0
+
+    def start(self, cmd, *, env=None, cwd=None, log_path=None) -> int:
+        self.start_async(cmd, env=env, cwd=cwd, log_path=log_path)
+        pid = self.poll_started()
+        assert pid is not None
+        return pid
+
+    def is_alive(self) -> bool:
+        return self.alive
+
+    def exit_code(self) -> int | None:
+        return None if self.alive else 0
+
+    def stop(self) -> None:
+        self.stopped = True
+        self.alive = False
+
+    def close(self) -> None:
+        self.alive = False
+
+
+@pytest.mark.asyncio
+async def test_run_routes_through_gpu_lease_and_strips_devices(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """With a gpu_lease, run() launches inside the actor (no local Popen) and
+    strips *_VISIBLE_DEVICES so Ray owns the card assignment (P2/T4)."""
+    workspace = tmp_path / "ws"
+    lease = _FakeGpuSpecialistLease(workspace)
+
+    # Any local Popen on the Ray path is a bug — make it explode.
+    import hyperloom.orchestrator.specialists.subprocess_ as sp
+
+    def _boom(*_a, **_k):
+        raise AssertionError("local Popen must not run when a gpu_lease is set")
+
+    monkeypatch.setattr(sp.subprocess, "Popen", _boom)
+    # Pretend the parent has serving GPU visibility that must NOT leak through.
+    monkeypatch.setenv("ROCR_VISIBLE_DEVICES", "6,7")
+
+    cfg = SpecialistSubprocessConfig(poll_interval_seconds=0.05)
+    disp = SpecialistSubprocessDispatcher(config=cfg)
+    result = await disp.run(
+        task_id="t-gpu",
+        workspace=workspace,
+        worktree=None,
+        worktree_base=None,
+        system_prompt="sys",
+        user_prompt="usr",
+        allowed_tools=(),
+        max_turns=1,
+        gpu_ids=(0, 1),
+        wall_budget_sec=60.0,
+        gpu_lease=lease,
+    )
+
+    assert lease.started is not None, "the subprocess must run inside the lease actor"
+    assert str(lease.started["log_path"]).endswith("process.log")
+    # Ray owns the visible devices — the caller env must not pin them.
+    assert "ROCR_VISIBLE_DEVICES" not in lease.env
+    assert "HIP_VISIBLE_DEVICES" not in lease.env
+    assert "CUDA_VISIBLE_DEVICES" not in lease.env
+    # The logical count is still advertised for specialist tooling.
+    assert lease.env.get("INFERENCE_OPTIMIZER_SPECIALIST_GPU_IDS") == "0,1"
+    assert result.done_payload is not None
+    assert result.exit_code == 0
+
+
+def test_kill_on_ray_lease_process_delegates_to_actor():
+    """_kill on a _RayLeaseProcess reaps via the actor, not killpg."""
+    from hyperloom.orchestrator.specialists.subprocess_ import _RayLeaseProcess
+
+    lease = _FakeGpuSpecialistLease(Path("/tmp"))
+    lease.alive = True
+    handle = _RayLeaseProcess(lease, pid=1234)
+    assert handle.poll() is None  # alive
+    SpecialistSubprocessDispatcher._kill(handle)
+    assert lease.stopped is True
+    # After reap the actor reports not-alive; poll latches the exit code.
+    assert handle.poll() == 0

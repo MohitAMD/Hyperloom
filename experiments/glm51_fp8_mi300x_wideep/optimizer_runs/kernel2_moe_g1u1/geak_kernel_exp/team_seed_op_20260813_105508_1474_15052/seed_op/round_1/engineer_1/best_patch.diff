@@ -1,0 +1,24 @@
+diff --git a/workspace/moe_fp8_blockscale_g1u1.py b/round_1/engineer_1/workspace/moe_fp8_blockscale_g1u1.py
+index 1e077ab..e640fa5 100644
+--- a/moe_fp8_blockscale_g1u1.py
++++ b/moe_fp8_blockscale_g1u1.py
+@@ -187,7 +187,7 @@ def moe_g1u1_fp8(
+     a_fp8, a_scale, w1_fp8, w1_scale, topk_ids,
+     N, group_n=128, group_k=128,
+     block_m=16, block_n=64, block_k=128, group_m=1,
+-    num_warps=4, num_stages=2,
++    num_warps=4, num_stages=1,
+ ):
+     """Launcher for the MoE stage-1 g1u1 fused GEMM.
+ 
+@@ -198,6 +198,10 @@ def moe_g1u1_fp8(
+     topk_ids: [num_tokens, top_k] int32
+     Returns out: [num_tokens*top_k, N] bf16.
+     """
++    # The k-loop uses one block scale per iteration (ks = kk), which is only correct
++    # when the K tile matches the scale group. Measured sweep also shows BLOCK_K=256
++    # is slower on every case, so pin it.
++    block_k = group_k
+     num_tokens, top_k = topk_ids.shape
+     E = w1_fp8.shape[0]
+     K = a_fp8.shape[1]

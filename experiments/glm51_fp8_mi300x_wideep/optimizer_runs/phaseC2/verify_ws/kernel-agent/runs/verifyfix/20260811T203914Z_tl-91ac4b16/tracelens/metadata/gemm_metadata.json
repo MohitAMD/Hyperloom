@@ -1,0 +1,37 @@
+{
+  "platform": "MI300X",
+  "peak_hbm_bw_tbs": 5.3,
+  "max_achievable_tflops": {
+    "matrix_fp16": 654,
+    "matrix_bf16": 708,
+    "matrix_fp32": 163,
+    "matrix_fp64": 81,
+    "matrix_fp8": 1273,
+    "matrix_int8": 2600,
+    "vector_fp16": 163,
+    "vector_bf16": 163,
+    "vector_fp32": 81,
+    "vector_fp64": 40
+  },
+  "memory_gb": 192,
+  "trace_path": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/phaseC2/verify_ws/kernel-agent/runs/verifyfix/20260811T203914Z_tl-91ac4b16/tracelens/trace_split/mixed_steady_state_prefill_0_prefilldecode_3_decode_29_bs1257_conc124_dp0_pp0_tp0_dcp0_ep0_rank0.1786443329043716575.json.gz",
+  "output_dir": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/phaseC2/verify_ws/kernel-agent/runs/verifyfix/20260811T203914Z_tl-91ac4b16/tracelens",
+  "category": "GEMM",
+  "category_name": "gemm",
+  "gpu_utilization": {
+    "total_time_ms": 10591.741071777344,
+    "computation_time_percent": 94.38348342321608,
+    "exposed_comm_time_percent": 5.180915623314679,
+    "exposed_memcpy_time_percent": 0.1669990035718755,
+    "idle_time_percent": 0.2686019498973743
+  },
+  "trace_loading_policy": "DO_NOT_LOAD_TRACE_use_precomputed_tree_data",
+  "time_breakdown": {
+    "gpu_kernel_time_ms": 737.441,
+    "cpu_duration_ms": 705.897,
+    "sync_time_ms": 53.44,
+    "sync_ops_count": 1,
+    "has_sync_bottleneck": false,
+    "note": "Use gpu_kernel_time_ms for bottleneck prioritization. sync_time_ms indicates host-device sync overhead."
+  }
+}

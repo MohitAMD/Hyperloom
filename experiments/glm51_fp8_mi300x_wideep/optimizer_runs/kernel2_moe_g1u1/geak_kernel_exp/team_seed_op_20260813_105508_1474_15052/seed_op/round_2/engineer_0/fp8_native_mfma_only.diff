@@ -1,0 +1,53 @@
+--- a/moe_fp8_blockscale_g1u1.py
++++ b/moe_fp8_blockscale_g1u1.py
+@@ -106,13 +106,29 @@
+     k_groups = tl.cdiv(K, BLOCK_K)
+     for kk in range(0, k_groups):
+         k_remaining = K - kk * BLOCK_K
+-        a = tl.load(a_ptrs, mask=token_mask[:, None] & (offs_k[None, :] < k_remaining), other=0.0)
+-        b_gate = tl.load(w_gate_ptrs, mask=offs_k[:, None] < k_remaining, other=0.0)
+-        b_up = tl.load(w_up_ptrs, mask=offs_k[:, None] < k_remaining, other=0.0)
++        a_b = tl.load(a_ptrs, mask=token_mask[:, None] & (offs_k[None, :] < k_remaining), other=0)
++        bg_b = tl.load(w_gate_ptrs, mask=offs_k[:, None] < k_remaining, other=0)
++        bu_b = tl.load(w_up_ptrs, mask=offs_k[:, None] < k_remaining, other=0)
++
++        # ---- OCP e4m3 (torch.float8_e4m3fn) -> fnuz e4m3 (tl.float8e4b8) --------
++        # Identical 1/4/3 bit layout, exponent bias 7 vs 8, so reinterpreting the
++        # same bits as fnuz yields EXACTLY half the value (normals and subnormals
++        # alike -- an exact power of two, zero rounding error). Both operands halve
++        # => the raw tl.dot is exactly 1/4 of the true product; the * 4.0 folded
++        # into a_scale below restores it bit-exactly.
++        # Only encoding that differs: OCP 0x80 is -0.0 while fnuz 0x80 is NaN
++        # (OCP 0x7F/0xFF are NaN but are never produced by finite clamped inputs
++        # and are measured to be absent here). Map 0x80 -> 0x00; -0.0 == 0.0.
++        a_b = tl.where(a_b == 0x80, 0, a_b).to(tl.uint8)
++        bg_b = tl.where(bg_b == 0x80, 0, bg_b).to(tl.uint8)
++        bu_b = tl.where(bu_b == 0x80, 0, bu_b).to(tl.uint8)
++        a = a_b.to(tl.float8e4b8, bitcast=True)
++        b_gate = bg_b.to(tl.float8e4b8, bitcast=True)
++        b_up = bu_b.to(tl.float8e4b8, bitcast=True)
+ 
+         # block scales for this k-group (BLOCK_K == group_k)
+         ks = kk  # group index along K
+-        a_scale = tl.load(
++        a_scale = 4.0 * tl.load(
+             a_scale_ptr + a_scale_row * stride_asm + ks * stride_ask,
+             mask=token_mask, other=0.0,
+         )
+@@ -293,9 +309,15 @@
+     # exactly once in sorted_token_ids); pad rows are masked off. No memset needed.
+     out = torch.empty((num_valid, N), device=a_fp8.device, dtype=torch.bfloat16)
+ 
++    # Hand the kernel raw bytes so Triton does no implicit fp8 convert on load;
++    # the kernel bitcasts them to the fnuz type that feeds the native fp8 MFMA.
++    # .view() is a metadata-only reinterpret (fp8 and uint8 are both 1 byte).
++    a_u8 = a_fp8.view(torch.uint8)
++    w1_u8 = w1_fp8.view(torch.uint8)
++
+     grid = (triton.cdiv(EM, block_m) * triton.cdiv(N, block_n),)
+     _moe_g1u1_fp8_kernel[grid](
+-        a_fp8, w1_fp8, out, a_scale, w1_scale,
++        a_u8, w1_u8, out, a_scale, w1_scale,
+         sorted_token_ids, expert_ids, num_tokens_post_padded,
+         N, K, EM, num_valid, top_k,
+         a_fp8.stride(0), a_fp8.stride(1),

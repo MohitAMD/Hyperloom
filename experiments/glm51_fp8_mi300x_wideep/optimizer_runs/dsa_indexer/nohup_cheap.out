@@ -1,0 +1,4 @@
+=== 2026-08-12T23:32:50Z launching DSA-indexer optimize tag=cheap max_hours=4 ===
+ASSET_ROOT=/shared_inference/mdeopuja/Hyperloom/optimizer_runs/dsa_indexer/asset_root
+FRAMEWORK_ROOTS=/usr/local/lib/python3.12/dist-packages/vllm:/usr/local/lib/python3.12/dist-packages/aiter:/usr/local/lib/python3.12/dist-packages/aiter_meta:/app/vllm
+VLLM_SPARSE_INDEXER_MAX_LOGITS_MB=64

@@ -1,0 +1,48 @@
+{
+ "engineer_id": "r1_d1",
+ "specialty": "compute",
+ "task": "GEMM tile/schedule sweep: num_stages=1, BLOCK_M shrink to cut padded-FLOP waste",
+ "strategy": "num_stages 2->1 (only surviving win); BLOCK_M/N/K/GROUP_M/num_warps/AMD knobs all swept and confirmed already-optimal at 16/64/128/1/4; block_k pinned to group_k for correctness.",
+ "speedup_geomean": 1.0449,
+ "speedup_arithmetic": 1.0449,
+ "speedup_weighted": 1.0463,
+ "per_case": [
+  {
+   "name": "case=0",
+   "baseline_ms": 10.3734,
+   "optimized_ms": 10.0382,
+   "speedup": 1.0334
+  },
+  {
+   "name": "case=1",
+   "baseline_ms": 14.3788,
+   "optimized_ms": 13.7466,
+   "speedup": 1.046
+  },
+  {
+   "name": "case=2",
+   "baseline_ms": 17.6388,
+   "optimized_ms": 16.804,
+   "speedup": 1.0497
+  },
+  {
+   "name": "case=3",
+   "baseline_ms": 19.4824,
+   "optimized_ms": 18.5465,
+   "speedup": 1.0505
+  }
+ ],
+ "status": "success",
+ "patch_file": "best_patch.diff",
+ "strategies_tried": [
+  "P4-LAUNCH num_stages 1 vs 2",
+  "P4-LAUNCH BLOCK_M 4/8/16/32/64",
+  "P4 BLOCK_N 32/64/128",
+  "P4 BLOCK_K 64/128/256",
+  "P4 GROUP_M 1/2/4/8/16",
+  "P4 num_warps 2/4/8",
+  "P5 matrix_instr_nonkdim 16/32",
+  "P5 kpack 1/2",
+  "P5 waves_per_eu 1..8"
+ ]
+}

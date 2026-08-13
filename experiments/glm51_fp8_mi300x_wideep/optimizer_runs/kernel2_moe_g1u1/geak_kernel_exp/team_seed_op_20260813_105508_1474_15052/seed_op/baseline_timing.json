@@ -1,0 +1,20 @@
+{
+  "test_cases": [
+    {"name": "case=0", "latency_ms": 10.3734, "params": "T=16 topk=8 E=256 N=2048 K=6144"},
+    {"name": "case=1", "latency_ms": 14.3788, "params": "T=32 topk=8 E=256 N=2048 K=6144"},
+    {"name": "case=2", "latency_ms": 17.6388, "params": "T=64 topk=8 E=256 N=2048 K=6144"},
+    {"name": "case=3", "latency_ms": 19.4824, "params": "T=128 topk=8 E=256 N=2048 K=6144"}
+  ],
+  "geomean_ms": 15.0466,
+  "workload_aligned": false,
+  "baseline_weighted_total_ms": 61.8734,
+  "num_test_cases": 4,
+  "reliable": true,
+  "runs_ms": [
+    [10.3603, 14.3554, 17.6156, 19.4557],
+    [10.3858, 14.3917, 17.6783, 19.5153],
+    [10.3740, 14.3894, 17.6225, 19.4762]
+  ],
+  "max_spread_pct": 0.36,
+  "notes": "Reused workspace test_harness.py verbatim (config.yaml runner). Unweighted geomean is PRIMARY (no WORKLOAD_SPEC / no weighted oracle). Baseline = pristine seed moe_fp8_blockscale_g1u1.py. A 4th confirming run gave [10.3513, 14.3155, 17.5988, 19.4247]."
+}

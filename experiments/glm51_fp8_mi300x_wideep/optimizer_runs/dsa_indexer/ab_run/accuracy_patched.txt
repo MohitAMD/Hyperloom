@@ -1,0 +1,20 @@
+=== NEEDLE-IN-HAYSTACK (long-context retrieval) ===
+  [FAIL] gold='47823' -> '1.  **Analyze the Request:** The user wants me to read a long document consisting of a repeated sentence ("The garden wa'
+  [FAIL] gold='6391' -> '1.  **Analyze the Request:** The user wants me to read a long document (which consists of a single sentence repeated man'
+  [FAIL] gold='Tavistock' -> '1.  **Analyze the Request:** The user wants me to read a long document (which consists of a single sentence repeated man'
+  needle score: 0/3
+=== GSM8K SUBSET (multi-step math) ===
+  [PASS] gold=72 pred=72
+  [PASS] gold=10 pred=10
+  [PASS] gold=5 pred=5
+  [PASS] gold=624 pred=624
+  [PASS] gold=3 pred=3
+  [PASS] gold=60 pred=60
+  [PASS] gold=64 pred=64
+  [PASS] gold=204 pred=204
+  [FAIL] gold=160 pred=140
+  [PASS] gold=75 pred=75
+  [PASS] gold=8 pred=8
+  [PASS] gold=25 pred=25
+  gsm score: 11/12
+=== TOTAL: needle 0/3, gsm 11/12 ===

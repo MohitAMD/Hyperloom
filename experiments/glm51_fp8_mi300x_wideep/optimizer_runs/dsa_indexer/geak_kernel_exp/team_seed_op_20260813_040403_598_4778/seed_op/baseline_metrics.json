@@ -1,0 +1,97 @@
+{
+  "round": 0,
+  "phase": "baseline",
+  "bottleneck": "compute",
+  "bottleneck_detail": "VALU-throughput-bound on a software fp8(OCP)->fp16 conversion chain, NOT on MFMA. Inner KV loop = 2570 instrs of which only 16 are v_mfma_f32_32x32x8_f16 (the fp16 MFMA); the rest is per-element cndmask/cmp/shift/or fixup emitted because torch.float8_e4m3fn (OCP) cannot feed a gfx942 FNUZ fp8 MFMA.",
+  "profiler_used": "rocprofv3",
+  "profiler_note": "rocprof-compute/omniperf not installed; clean degrade to rocprofv3 --kernel-trace --stats --output-format csv (no PROFILER FAILED block). No SoL/cache/wavefront sections available -> valu_pct/vmem_pct/lds_pct/l2_hit_pct are -1 (unmeasured, not zero).",
+  "device": "MI300X-class / gfx942 / CDNA3, 304 CU, 192 GB HBM, ~5.3 TB/s peak (rocminfo: gfx942:sramecc+:xnack-, Compute Unit: 304; PCI model 0x74a1)",
+  "dispatch_count": 1,
+  "dispatch_note": "_fp8_mqa_logits_kernel = 4 calls / 94.07% of all GPU time = exactly 1 dispatch per call. All other trace kernels belong to setup_inputs, outside the timed region. No dispatch-collapse or HIP-graph lever exists.",
+  "key_metrics": {
+    "valu_pct": -1.0,
+    "vmem_pct": -1.0,
+    "lds_pct": -1.0,
+    "hbm_gbps": 40.0,
+    "hbm_pct_of_peak": 0.8,
+    "l2_hit_pct": -1.0,
+    "vgpr": 108,
+    "accum_vgpr": 132,
+    "total_vgpr": 233,
+    "sgpr": 112,
+    "scratch_bytes": 0,
+    "lds_bytes": 8192,
+    "waves_per_simd_ceiling": 2,
+    "occupancy_pct": 25.0,
+    "workgroup_size": 256,
+    "num_warps": 4,
+    "block_kv": 64,
+    "num_stages": 1,
+    "matrix_instr_nonkdim": 32,
+    "ctas_min": 2048,
+    "ctas_max": 8192,
+    "cu_count": 304,
+    "achieved_tflops_max": 72.7,
+    "pct_fp8_peak": 2.8,
+    "pct_fp16_peak": 5.6,
+    "inner_loop_instrs": 2570,
+    "inner_loop_mfma_instrs": 16,
+    "mfma_op": "v_mfma_f32_32x32x8_f16"
+  },
+  "per_case": [
+    {"case": 0, "M": 2048, "N": 2048, "harness_ms": 1.0605, "kernel_us": 1019.3, "grid_x": 524288, "ctas": 2048, "tflops": 64.8, "hbm_gbps": 48},
+    {"case": 1, "M": 4096, "N": 4096, "harness_ms": 3.9661, "kernel_us": 4109.8, "grid_x": 1048576, "ctas": 4096, "tflops": 69.3, "hbm_gbps": 42},
+    {"case": 2, "M": 8000, "N": 8000, "harness_ms": 14.7343, "kernel_us": 14846.2, "grid_x": 2048000, "ctas": 8000, "tflops": 71.2, "hbm_gbps": 39},
+    {"case": 3, "M": 8192, "N": 8192, "harness_ms": 15.1161, "kernel_us": 15059.4, "grid_x": 2097152, "ctas": 8192, "tflops": 72.7, "hbm_gbps": 40}
+  ],
+  "baseline_geomean_ms": 5.5324,
+  "baseline_arith_sum_ms": 34.877,
+  "scaling_note": "us per M*N element is near-constant 225-253 ns/Melem across a 16x work range -> NOT overhead-bound, no launch floor, no HIP-graph lever.",
+  "sanity_checks": {
+    "fill": "CTAs (M = 2048..8192) vs 304 CU -> 6.7x-27x oversubscribed; GPU fully filled",
+    "spill": "Scratch_Size = 0 on every dispatch",
+    "roofline": "HBM <1% of 5.3 TB/s, MFMA 2.5-2.8% of fp8 peak; no efficiency >100%, peaks sane",
+    "memory_bound_ruled_out": "HBM utilization is ~0.8%, so a small AI does not make this memory-bound"
+  },
+  "ab_probe_m4096": {
+    "note": "standalone microbenchmark of an equivalent kernel body on GPU 0, M=N=4096 H=64 D=128. Direction signal only; full-benchmark decides.",
+    "float8_e4m3fn_bkv64_ns1_BASELINE_PATH_ms": 3.771,
+    "float16_bkv64_ns1_ms": 1.241,
+    "bfloat16_bkv64_ns1_ms": 1.248,
+    "float16_bkv128_ns2_ms": 1.040,
+    "bfloat16_bkv128_ns2_ms": 1.040,
+    "float8_e4m3fnuz_bkv64_ns1_ms": 1.063,
+    "float8_e4m3fnuz_bkv128_ns2_ms": 0.618,
+    "float8_e4m3fnuz_bkv256_ns2_ms": 0.798,
+    "best_speedup_vs_baseline_path": 6.1
+  },
+  "ocp_to_fnuz_exactness": {
+    "verified": true,
+    "rule": "e4m3fn and e4m3fnuz share the 4-bit exp / 3-bit mantissa layout and differ only by exponent bias 1 (factor 2) plus the 0x80 (neg-zero -> NaN) codepoint",
+    "probe": "as_fnuz(bits) * 2.0 == e4m3fn_value bit-exactly, max abs diff 0.0; 3320 0x80 bytes in Q and 47 in K all map to +0",
+    "scale_fold": "one scalar x4 total (x2 from Q, x2 from K) folded into the existing kv_scales / w_block multiply",
+    "rule_compliance": "reads only the 0x80 codepoint, never the data values -> does not exploit the fixed seed; is a format change, not a tolerance relaxation"
+  },
+  "top_kernels": [
+    {"name": "_fp8_mqa_logits_kernel", "pct_of_total": 94.07, "calls": 4, "avg_us": 8758.7},
+    {"name": "at::native::vectorized_elementwise_kernel<MulFunctor<float>> (setup_inputs, untimed)", "pct_of_total": 1.10, "calls": 12},
+    {"name": "at::native::distribution_elementwise_grid_stride_kernel<normal> (setup_inputs, untimed)", "pct_of_total": 1.09, "calls": 12},
+    {"name": "at::native::vectorized_elementwise_kernel<clamp_scalar> (setup_inputs, untimed)", "pct_of_total": 1.07, "calls": 8},
+    {"name": "at::native::elementwise_kernel_manual_unroll<direct_copy> (setup_inputs, untimed)", "pct_of_total": 1.00, "calls": 8},
+    {"name": "at::native::vectorized_elementwise_kernel<FillFunctor<float>> (the -inf logits prefill, TIMED)", "pct_of_total": 0.69, "calls": 4, "avg_us": 64.6}
+  ],
+  "top_opportunities": [
+    "Eliminate the software fp8(OCP)->fp16 conversion and feed the native gfx942 FNUZ fp8 MFMA: view Q/K as uint8, scrub 0x80->0x00, bitcast to float8_e4m3fnuz, fold the resulting x4 into kv_scales/w_block. Inner loop is 2570 instrs for 16 fp16 MFMAs today; probe measured 3.771 -> 0.618 ms (6.1x) at M=4096. Fuse the scrub into the Triton load path (tl.where on the uint8 bits + tl.bitcast), NOT host-side torch passes, to avoid adding dispatches inside the timed region.",
+    "Re-open the tile choice once fp8 is native: _gfx942_default_tile_fits_lds models the fp16-expansion path, but native fp8 halves the KV tile. BLOCK_KV=128/num_stages=2 measured 0.618 ms vs 1.063 ms at 64/1 (1.7x on top of #1); 256/2 regressed to 0.798 ms and bf16 256/2 hit the 64 KiB LDS wall. Update the gate function rather than bypassing it.",
+    "Drop input_precision=\"ieee\" on the tl.dot: with native fp8 operands the accumulate is already fp32 and 'ieee' may force a slower expansion path. Cheap A/B, must stay under err_ratio <= 0.02.",
+    "Avoid the full torch.full(-inf) output prefill: FillFunctor<float> costs ~178 us on the M=8000 case inside the timed region and cu_starts=0/cu_ends=N means the kernel writes every element anyway. Use torch.empty when the window is provably full, or store -inf from the masked tail. ~1% now, ~10% after #1.",
+    "Re-read the latency C1/C2 split after #1+#2 land: 108+132 VGPRs -> 2 waves/SIMD (25%), but with a 2570-instr dependency-light loop that is currently adequate. Once the loop shrinks ~100x the kernel will likely flip to issue-wait-dominant, making Accum_VGPR reduction / waves_per_eu a real lever. Do NOT pre-tune registers now."
+  ],
+  "summary_path": "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/dsa_indexer/geak_kernel_exp/team_seed_op_20260813_040403_598_4778/seed_op/profiling_summary.md",
+  "artifacts": [
+    "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/dsa_indexer/geak_kernel_exp/team_seed_op_20260813_040403_598_4778/seed_op/profile_output/profile_report.txt",
+    "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/dsa_indexer/geak_kernel_exp/team_seed_op_20260813_040403_598_4778/seed_op/profile_output/rocprofv3/useocpm2m-097-038/4523_kernel_stats.csv",
+    "/shared_inference/mdeopuja/Hyperloom/optimizer_runs/dsa_indexer/geak_kernel_exp/team_seed_op_20260813_040403_598_4778/seed_op/profile_output/rocprofv3/useocpm2m-097-038/4523_kernel_trace.csv"
+  ],
+  "shift_note": ""
+}

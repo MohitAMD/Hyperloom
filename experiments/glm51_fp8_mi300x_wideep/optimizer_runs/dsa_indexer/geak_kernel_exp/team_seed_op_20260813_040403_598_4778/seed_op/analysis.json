@@ -1,0 +1,48 @@
+{
+  "kernel_type": "triton",
+  "kernel_file": "triton_fp8_mqa_logits.py",
+  "entry_point": "fp8_mqa_logits_gfx942",
+  "target_kernels": ["_fp8_mqa_logits_kernel", "fp8_mqa_logits_gfx942"],
+  "modifiable_files": ["triton_fp8_mqa_logits.py"],
+  "immutable_files": ["test_harness.py", "config.yaml"],
+  "device": "gfx942 (MI300X, sramecc+, xnack-)",
+  "baseline_measured": {
+    "case0_M2048": 1.0577,
+    "case2_M8000": 14.6895,
+    "case3_M8192": 15.0611,
+    "geomean_ms": 6.1624
+  },
+  "bottleneck_guess": "compute",
+  "bottleneck_detail": "tl.dot on torch.float8_e4m3fn (OCP fp8, NOT fnuz) does NOT lower to native fp8 MFMA on gfx942. Verified in ISA: the compiled kernel emits v_mfma_f32_16x16x16_f16 (upconvert-to-fp16 path) -> ~73 TFLOPS at the baseline tile. Bitcasting the operands to tl.float8e4b8 (fnuz) makes Triton emit v_mfma_f32_16x16x32_fp8_fp8 -> 600 TFLOPS. Secondarily the launcher's LDS heuristic forces BLOCK_KV=64/num_stages=1 and matrix_instr_nonkdim=32, both ~2x/1.09x pessimal.",
+  "measured_probes_at_M8000": [
+    {"variant": "baseline-equivalent BLOCK_KV=64 nkd=32 ieee", "ms": 14.244, "tflops": 73.6},
+    {"variant": "BLOCK_KV=128 nkd=32", "ms": 7.777, "tflops": 134.8},
+    {"variant": "BLOCK_KV=128 nkd=16", "ms": 7.180, "tflops": 146.1},
+    {"variant": "BLOCK_KV=128 nkd=16 num_warps=8", "ms": 15.036, "note": "num_warps=8 is a hard regression"},
+    {"variant": "BLOCK_KV=128 nkd=16 waves_per_eu=1", "ms": 11.785},
+    {"variant": "BLOCK_KV=256 nkd=32", "ms": 8.220, "correct": false, "note": "err_ratio 0.023 > 0.02 in the f16-MFMA path"},
+    {"variant": "BLOCK_Q=2 (64x2=128 rows) BLOCK_KV=64", "ms": 7.992, "note": "no better than BLOCK_KV=128; BLOCK_Q=2+BKV=128 was 8.57ms"},
+    {"variant": "input_precision tf32 vs ieee", "ms": 7.804, "note": "no effect - operands are fp8, ieee/tf32 identical"},
+    {"variant": "FNUZ bitcast + 4x scale compensation, BLOCK_KV=128 nkd=16", "ms": 1.747, "tflops": 600.3, "correct": true, "err_ratio": 0.0077, "cos_diff": 4.04e-3},
+    {"variant": "FNUZ + BLOCK_KV=128 nkd=32", "ms": 2.263, "tflops": 463.4},
+    {"variant": "FNUZ + BLOCK_KV=256 nkd=16", "ms": 1.737, "correct": false, "err_ratio": 0.0231},
+    {"variant": "FNUZ with NO neg-zero scrub", "ms": 1.737, "correct": false, "err_ratio": 0.918, "note": "0x80 = -0.0 in OCP e4m3 is NaN in e4m3fnuz -> MUST scrub"},
+    {"variant": "FNUZ, in-kernel scrub of BOTH Q and KV tiles", "ms": 2.521, "correct": true, "note": "in-loop KV scrub costs ~0.78ms of VALU"},
+    {"variant": "FNUZ, in-kernel scrub of Q only + host one-shot scrub of K", "ms": 1.760, "correct": true, "note": "BEST known point; host K scrub measured 0.027ms one-shot"}
+  ],
+  "fnuz_math": "e4m3fnuz has exponent bias 8 vs OCP e4m3's bias 7, so a raw bitcast reinterprets every value as v/2. A dot of two bitcast operands yields (q.k)/4, corrected by folding a *4.0 into the existing per-column kv_scales multiply (zero extra cost). Byte 0x80 (-0.0 OCP) is NaN in fnuz and must be mapped to 0x00.",
+  "wrapper_findings": {
+    "logits_alloc": "torch.full((M,N), -inf) costs 0.060ms at M=8000 vs 0.0036ms for torch.empty -> ~0.4% of baseline, ~3.4% of the 1.75ms fnuz kernel. With cu_starts=0/cu_ends=N the harness never needs the -inf prefill, but the semantic must be preserved generally (e.g. fill only the out-of-window edges, or have the kernel write -inf on the masked-out prologue/epilogue columns).",
+    "grid": "grid=(seq_len,) = 8000 workgroups of 4 warps -> fine on 304 CUs; reversal trick for tail effect is already present.",
+    "launcher_heuristic": "_gfx942_default_tile_fits_lds returns False for (64,128) so the DSv4 shape takes the (BLOCK_KV=64, num_stages=1) branch. That branch is the single biggest tuning loss after the MFMA issue: BLOCK_KV=128 measured 1.83x faster and still fits.",
+    "matrix_instr_nonkdim": "launcher picks 32 for seq_len>1024; 16 is uniformly faster here (1.30x in the fnuz path)."
+  },
+  "kk_operator": "sparse_attention_nsa",
+  "kk_language": "triton",
+  "kk_refs": [
+    "operators/sparse_attention_nsa/tuning.md",
+    "operators/sparse_attention_nsa/backends/triton.md",
+    "operators/sparse_attention_nsa/numerics.md",
+    "languages/triton_amd/knobs.md"
+  ]
+}

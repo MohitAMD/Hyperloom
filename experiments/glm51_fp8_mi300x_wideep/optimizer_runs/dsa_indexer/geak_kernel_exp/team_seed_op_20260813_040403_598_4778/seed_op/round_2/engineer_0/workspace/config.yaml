@@ -1,0 +1,26 @@
+# GEAK single-op optimize task: DSA sparse-MLA indexer prefill logits kernel.
+# vllm::rocm_aiter_sparse_attn_indexer -> _fp8_mqa_logits_kernel (@triton.jit)
+# The kernel-under-optimization is the co-located triton_fp8_mqa_logits.py; the
+# launcher fp8_mqa_logits_gfx942 (grid=(seq_len,)) is what unittest.py times.
+source_file_path:
+- triton_fp8_mqa_logits.py
+target_kernel_functions:
+- _fp8_mqa_logits_kernel
+- fp8_mqa_logits_gfx942
+# unittest.py is a self-contained runner: it loads the co-located kernel, checks
+# correctness against a pure-torch fp32 oracle (run_ref, independent of the file
+# under optimization), and benchmarks with CUDA events, printing
+# GEAK_RESULT_LATENCY_MS (geomean over cases, ms).
+correctness_command:
+- python3 test_harness.py --correctness
+performance_command:
+- python3 test_harness.py --benchmark
+full_benchmark_command:
+- python3 test_harness.py --full-benchmark
+profile_command:
+- python3 test_harness.py --profile
+task_type: triton2triton
+# Baseline (speedup denominator) = the pristine original triton_fp8_mqa_logits.py
+# copied into baseline/ by the Director. Reference-baseline microbench at
+# seqlen 8000 ~= 14.9 ms on MI300X (gfx942). Correctness tolerance:
+# rtol=atol=5e-2, err_ratio<=0.02 (fp8 operands, fp32 accumulation).
