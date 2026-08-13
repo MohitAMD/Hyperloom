@@ -164,7 +164,7 @@ class IntentRouter:
                     ),
                 },
             )
-        denied = self._sequence_denial_for_action(action_name)
+        denied = self._admission_denial_for_action(action_name)
         if denied is not None:
             await self._record_policy_denied(source, intent, denied)
             return
@@ -381,7 +381,7 @@ class IntentRouter:
                     ),
                 },
             )
-        denied = self._sequence_denial_for_action(action_name)
+        denied = self._admission_denial_for_action(action_name)
         if denied is not None:
             await self._record_policy_denied(
                 source,
